@@ -1,6 +1,13 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
-// 1. Structural blueprint definition for our User profile data
+// =========================================================
+// 🛠️ DEVELOPMENT SWITCH
+// Set this to true to turn off the location check while working at home.
+// Set this to false when you are ready to use the real location check again.
+// =========================================================
+const BYPASS_LOCATION_GUARD = true;
+
+// 1. Define what a user profile looks like
 interface UserProfile {
   id: string;
   fullName: string;
@@ -8,7 +15,7 @@ interface UserProfile {
   createdAt: string;
 }
 
-// 2. Blueprint for the complete Auth Engine state
+// 2. Define what data our authentication state will share
 interface AuthContextType {
   user: UserProfile | null;
   isWithinWorkspace: boolean;
@@ -24,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isWithinWorkspace, setIsWithinWorkspace] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // 3. Sync memory layout: Mount state out of localStorage upon initial boot load
+  // 3. Load saved user details from browser storage when the app starts
   useEffect(() => {
     const storedUser = localStorage.getItem("katdict_user");
     const storedGeo = localStorage.getItem("katdict_geo_status");
@@ -32,22 +39,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
-    if (storedGeo) {
-      setIsWithinWorkspace(storedGeo === "true");
+
+    // Check if the development switch is turned on
+    if (BYPASS_LOCATION_GUARD) {
+      setIsWithinWorkspace(true); // Force the location to be valid
+    } else if (storedGeo) {
+      setIsWithinWorkspace(storedGeo === "true"); // Use real saved location status
     }
+
     setIsLoading(false);
   }, []);
 
-  // 4. Action: Initialize workspace session credentials
+  // 4. Action: Log the user in and save their session data
   const loginSession = (userData: UserProfile, isWithin: boolean) => {
     setUser(userData);
-    setIsWithinWorkspace(isWithin);
+
+    // If our development switch is on, force it to be true. Otherwise, use the real value.
+    const finalLocationStatus = BYPASS_LOCATION_GUARD ? true : isWithin;
+    setIsWithinWorkspace(finalLocationStatus);
 
     localStorage.setItem("katdict_user", JSON.stringify(userData));
-    localStorage.setItem("katdict_geo_status", String(isWithin));
+    localStorage.setItem("katdict_geo_status", String(finalLocationStatus));
   };
 
-  // 5. Action: Clear session parameters on exit
+  // 5. Action: Log the user out and clear saved data
   const logoutSession = () => {
     setUser(null);
     setIsWithinWorkspace(false);
@@ -72,13 +87,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Custom hook to cleanly consume credentials inside layout sub-components
+// Custom hook to easily use authentication data in other parts of our app
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error(
-      "useAuth must be executed within an explicit AuthProvider layer.",
-    );
+    throw new Error("useAuth must be used inside an AuthProvider component.");
   }
   return context;
 }

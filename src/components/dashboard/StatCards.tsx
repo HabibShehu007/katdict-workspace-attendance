@@ -1,4 +1,11 @@
 import { CalendarDays, Flame, MapPin, MapPinOff } from "lucide-react";
+// Import Swiper React components and modules
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+
+// Import Swiper styles in your project
+import "swiper/css";
+import "swiper/css/pagination";
 
 interface StatCardsProps {
   dayName: string;
@@ -13,87 +20,119 @@ export default function StatCards({
   isWithinWorkspace,
   streakCount = 7,
 }: StatCardsProps) {
+  // Clean, reusable card layouts to keep our code DRY
+  const cards = [
+    {
+      id: "date",
+      label: "Today",
+      title: dayName,
+      desc: formattedDate,
+      icon: <CalendarDays className="w-5 h-5" />,
+      iconBg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+      cardBg: "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800",
+      titleColor: "text-zinc-900 dark:text-white",
+    },
+    {
+      id: "streak",
+      label: "Your Streak",
+      title: `${streakCount} Days Active`,
+      desc: "Keep up the great work!",
+      icon: <Flame className="w-5 h-5 fill-amber-500/10" />,
+      iconBg: "bg-amber-500/10 text-amber-500 dark:text-amber-400",
+      cardBg: "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800",
+      titleColor: "text-zinc-900 dark:text-white",
+    },
+    {
+      id: "location",
+      label: "Location Status",
+      title: isWithinWorkspace ? "Katdict Workspace" : "Outside Office",
+      desc: isWithinWorkspace ? "Connected at office" : "Working remotely",
+      icon: isWithinWorkspace ? (
+        <MapPin className="w-5 h-5" />
+      ) : (
+        <MapPinOff className="w-5 h-5" />
+      ),
+      iconBg: isWithinWorkspace
+        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+        : "bg-amber-500/10 text-amber-500 dark:text-amber-400 animate-pulse",
+      cardBg: isWithinWorkspace
+        ? "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+        : "bg-amber-500/5 dark:bg-amber-500/[0.02] border-amber-500/20",
+      titleColor: isWithinWorkspace
+        ? "text-zinc-900 dark:text-white"
+        : "text-amber-600 dark:text-amber-400",
+    },
+  ];
+
   return (
-    /* We use flex layout, prevent shrinking, and allow overflow scrolling with a hidden scrollbar track */
-    <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-5 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory pb-2 sm:pb-0">
-      {/* CARD 1 */}
-      <div className="min-w-[280px] sm:min-w-0 snap-start bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex items-center gap-4 shadow-xs transition-all">
-        <div className="p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl">
-          <CalendarDays className="w-5 h-5" />
-        </div>
-        <div>
-          <h4 className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-            System Chronology
-          </h4>
-          <h2 className="text-base font-black tracking-tight text-zinc-900 dark:text-white mt-0.5">
-            {dayName}
-          </h2>
-          <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-            {formattedDate}
-          </p>
-        </div>
-      </div>
-
-      {/* CARD 2 */}
-      <div className="min-w-[280px] sm:min-w-0 snap-start bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex items-center gap-4 shadow-xs transition-all">
-        <div className="p-3 bg-amber-500/10 text-amber-500 dark:text-amber-400 rounded-xl">
-          <Flame className="w-5 h-5 fill-amber-500/10" />
-        </div>
-        <div>
-          <h4 className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-            Consistency Streak
-          </h4>
-          <h2 className="text-base font-black tracking-tight text-zinc-900 dark:text-white mt-0.5">
-            {streakCount} Days Active
-          </h2>
-          <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-            Keep up the momentum!
-          </p>
-        </div>
-      </div>
-
-      {/* CARD 3 */}
-      <div
-        className={`min-w-[280px] sm:min-w-0 snap-start p-5 rounded-2xl border flex items-center gap-4 shadow-xs transition-all ${
-          isWithinWorkspace
-            ? "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
-            : "bg-amber-500/5 dark:bg-amber-500/[0.02] border-amber-500/20"
-        }`}
-      >
-        <div
-          className={`p-3 rounded-xl ${
-            isWithinWorkspace
-              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-              : "bg-amber-500/10 text-amber-500 dark:text-amber-400 animate-pulse"
-          }`}
+    <div className="w-full">
+      {/* MOBILE VIEW: Shows a smooth auto-playing slider with navigation dot indicators */}
+      <div className="block sm:hidden pb-8 custom-stat-swiper">
+        <Swiper
+          modules={[Autoplay, Pagination]}
+          spaceBetween={16}
+          slidesPerView={1}
+          autoplay={{
+            delay: 3500,
+            disableOnInteraction: false,
+          }}
+          pagination={{
+            clickable: true,
+            dynamicBullets: true,
+          }}
+          className="w-full"
         >
-          {isWithinWorkspace ? (
-            <MapPin className="w-5 h-5" />
-          ) : (
-            <MapPinOff className="w-5 h-5" />
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <h4 className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-            Perimeter Detection
-          </h4>
-          <h2
-            className={`text-sm font-black tracking-tight truncate mt-0.5 ${
-              isWithinWorkspace
-                ? "text-zinc-900 dark:text-white"
-                : "text-amber-600 dark:text-amber-400"
-            }`}
+          {cards.map((card) => (
+            <SwiperSlide key={card.id}>
+              {/* flex-col items-center text-center balances everything cleanly over the center axis */}
+              <div
+                className={`p-6 rounded-2xl border flex flex-col items-center text-center shadow-xs ${card.cardBg}`}
+              >
+                <div className={`p-3 rounded-xl mb-3 ${card.iconBg}`}>
+                  {card.icon}
+                </div>
+                <div>
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                    {card.label}
+                  </h4>
+                  <h2
+                    className={`text-base font-black tracking-tight mt-1 ${card.titleColor}`}
+                  >
+                    {card.title}
+                  </h2>
+                  <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mt-0.5">
+                    {card.desc}
+                  </p>
+                </div>
+              </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </div>
+
+      {/* DESKTOP VIEW: Falls back to a clean, standard 3-column dashboard grid layout */}
+      <div className="hidden sm:grid grid-cols-2 lg:grid-cols-3 gap-5">
+        {cards.map((card) => (
+          <div
+            key={card.id}
+            className={`p-5 rounded-2xl border flex items-center gap-4 shadow-xs ${card.cardBg}`}
           >
-            {isWithinWorkspace
-              ? "Katdict Workspace Building"
-              : "Isolated Grid Terminal"}
-          </h2>
-          <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 truncate">
-            {isWithinWorkspace
-              ? "Verified Node Connection"
-              : "Outside Authorized Zone"}
-          </p>
-        </div>
+            <div className={`p-3 rounded-xl ${card.iconBg}`}>{card.icon}</div>
+            <div className="min-w-0 flex-1">
+              <h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                {card.label}
+              </h4>
+              <h2
+                className={`text-sm font-black tracking-tight truncate mt-0.5 ${card.titleColor}`}
+              >
+                {card.title}
+              </h2>
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 truncate">
+                {card.desc}
+              </p>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -13,3 +13,20 @@
     scrollbar-width: none; /* Firefox */
   }
 }
+
+/* Custom Swiper Pagination Styling overrides */
+.custom-stat-swiper .swiper-pagination-bullet-active {
+  background: #059669 !important; /* Tailwind emerald-600 */
+  width: 16px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.custom-stat-swiper .swiper-pagination-bullet {
+  background: #a1a1aa; /* Tailwind zinc-400 */
+  opacity: 0.6;
+}
+
+.custom-stat-swiper .swiper-pagination-bullet-active {
+  opacity: 1;
+}
