@@ -30,11 +30,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (password.length < 6) {
-      return res
-        .status(400)
-        .json({
-          error: "Security check: Password must be at least 6 characters.",
-        });
+      return res.status(400).json({
+        error: "Security check: Password must be at least 6 characters.",
+      });
     }
 
     // 4. Check if the developer email is already registered
@@ -63,7 +61,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // 7. Return structured success payload
     return res.status(201).json({
       success: true,
-      message: "Workspace account configured and registered successfully.",
+      message: "Workspace account registered successfully.",
       user: {
         id: newUser.id,
         fullName: newUser.full_name,

@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import {
-  User,
   Mail,
   Lock,
   ArrowLeft,
@@ -11,29 +10,24 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useSignUp } from "../hooks/useSignUp";
+import { useLogin } from "../hooks/useLogin";
 import ThemeToggle from "../components/ThemeToggle";
 
-export default function SignUp() {
+export default function Login() {
   const navigate = useNavigate();
 
   const {
-    fullName,
-    setFullName,
     email,
     setEmail,
     password,
     setPassword,
-    confirmPassword,
-    setConfirmPassword,
     isLoading,
-    handleSignUpSubmit,
-  } = useSignUp({
-    onSuccess: () => navigate("/login"),
+    handleLoginSubmit,
+  } = useLogin({
+    onSuccess: () => navigate("/dashboard"), // Redirect to dashboard room upon clear log
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   return (
     <div className="min-h-screen w-full flex bg-zinc-50 dark:bg-zinc-800 transition-colors duration-400 ease-in-out">
@@ -51,29 +45,28 @@ export default function SignUp() {
         </div>
       </div>
 
-      {/* LEFT PANEL: Graphic Context (Hidden on mobile) */}
+      {/* LEFT PANEL: Graphic Context */}
       <div
         className="hidden md:flex md:w-1/2 relative bg-cover bg-center items-end p-12 overflow-hidden"
         style={{ backgroundImage: "url('/KATDICT-2-scaled.jpg')" }}
       >
-        {/* Dynamic Overlay that reacts to theme subtly */}
         <div className="absolute inset-0 bg-linear-to-b from-zinc-950/40 via-zinc-950/80 to-zinc-950" />
 
         <div className="relative z-10 max-w-sm space-y-3">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-widest">
-            <MapPin className="w-3 h-3" /> System Gate
+            <MapPin className="w-3 h-3" /> Secure Gateway
           </div>
           <h2 className="text-3xl font-extrabold text-white tracking-tight">
-            Building the local ecosystem.
+            Welcome Back to the Workspace.
           </h2>
           <p className="text-sm text-zinc-400 leading-relaxed">
-            One line of clean code at a time. Join the workspace system to log
-            your contributions and view active developer logs.
+            Log in to monitor your active projects, submit logs, and manage
+            configuration protocols seamlessly.
           </p>
         </div>
       </div>
 
-      {/* RIGHT PANEL: The Presentation Form */}
+      {/* RIGHT PANEL: Form presentation */}
       <div className="w-full md:w-1/2 flex items-center justify-center p-6 sm:p-12 md:p-16 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
@@ -82,39 +75,15 @@ export default function SignUp() {
         >
           <div className="space-y-2">
             <h1 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-white transition-colors">
-              Create Account
+              Sign In
             </h1>
             <p className="text-sm text-zinc-500 dark:text-zinc-400 transition-colors">
-              Register your personal account for KATDICT Workspace.
+              Provide workspace credentials to unlock full session access.
             </p>
           </div>
 
-          <form onSubmit={handleSignUpSubmit} className="space-y-5">
-            {/* Full Name Input Field */}
-            <div className="space-y-1.5">
-              <label
-                htmlFor="fullName"
-                className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 transition-colors"
-              >
-                Full Name
-              </label>
-              <div className="relative flex items-center">
-                <User className="absolute left-4 w-5 h-5 text-zinc-400 dark:text-zinc-500 transition-colors" />
-                <input
-                  id="fullName"
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  placeholder="Full Name"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  disabled={isLoading}
-                  className="w-full bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium rounded-xl border border-zinc-200 dark:border-zinc-700/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-hidden py-4 pl-12 pr-4 transition-all disabled:opacity-50 text-base"
-                />
-              </div>
-            </div>
-
-            {/* Email Address Input Field */}
+          <form onSubmit={handleLoginSubmit} className="space-y-5">
+            {/* Email Field */}
             <div className="space-y-1.5">
               <label
                 htmlFor="email"
@@ -128,7 +97,7 @@ export default function SignUp() {
                   id="email"
                   name="email"
                   type="email"
-                  autoComplete="email"
+                  autoComplete="username"
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -177,49 +146,6 @@ export default function SignUp() {
               </div>
             </div>
 
-            {/* Confirm Password Input Field */}
-            <div className="space-y-1.5">
-              <label
-                htmlFor="confirmPassword"
-                className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 transition-colors"
-              >
-                Confirm Password
-              </label>
-              <div className="relative flex items-center">
-                <Lock className="absolute left-4 w-5 h-5 text-zinc-400 dark:text-zinc-500 transition-colors" />
-
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  autoComplete="new-password"
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={isLoading}
-                  className="w-full bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium rounded-xl border border-zinc-200 dark:border-zinc-700/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-hidden py-4 pl-12 pr-12 transition-all disabled:opacity-50 text-base"
-                />
-
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  disabled={isLoading}
-                  className="absolute right-4 p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-lg transition-colors focus:outline-hidden disabled:opacity-50 cursor-pointer"
-                  aria-label={
-                    showConfirmPassword
-                      ? "Hide confirm password"
-                      : "Show confirm password"
-                  }
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
-            </div>
-
             <button
               type="submit"
               disabled={isLoading}
@@ -228,23 +154,24 @@ export default function SignUp() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Creating Account...</span>
+                  <span>Logging In...</span>
                 </>
               ) : (
-                <span>Register Workspace Account</span>
+                <span>Login</span>
               )}
             </button>
           </form>
-          {/* Existing Account Redirect Link */}
+
+          {/* New Account Sign Up Link */}
           <div className="text-center pt-2">
             <p className="text-sm text-zinc-500 dark:text-zinc-400 transition-colors">
-              Already have a workspace profile?{" "}
+              New here?{" "}
               <button
                 type="button"
-                onClick={() => navigate("/login")}
+                onClick={() => navigate("/signup")}
                 className="font-bold text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors cursor-pointer underline underline-offset-4"
               >
-                Sign In
+                Create an Account
               </button>
             </p>
           </div>

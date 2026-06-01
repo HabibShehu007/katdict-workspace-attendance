@@ -7,7 +7,10 @@ import { useEffect } from "react";
 // Page Imports
 import Onboarding from "./pages/Onboarding";
 import SignUp from "./pages/SignUp";
-// import Login from "./pages/Login"; // Ready for when we build this next
+import Login from "./pages/Login";
+
+//  Dashboard and sub-pages imports
+import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,7 +44,10 @@ function App() {
 
             {/* Auth Routes */}
             <Route path="/signup" element={<SignUp />} />
-            {/* <Route path="/login" element={<Login />} /> */}
+            <Route path="/login" element={<Login />} />
+
+            {/* Dashboard and sub-pages Route */}
+            <Route path="/dashboard/*" element={<Dashboard />} />
 
             {/* Fallback to onboarding if route doesn't exist */}
             <Route path="*" element={<Navigate to="/" replace />} />
