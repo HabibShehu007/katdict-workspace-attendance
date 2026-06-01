@@ -3,67 +3,65 @@ import type { Variants } from "framer-motion";
 import { LogIn, UserPlus, MapPin } from "lucide-react";
 
 export default function Onboarding() {
-  // Explicitly typing variants resolves the TypeScript compiler errors
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.15,
+        staggerChildren: 0.12,
         delayChildren: 0.1,
       },
     },
   };
 
   const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 15 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
         type: "spring",
-        stiffness: 120,
-        damping: 20,
+        stiffness: 140,
+        damping: 22,
       },
     },
   };
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden font-sans">
+    <div className="relative min-h-screen w-full flex items-center justify-start overflow-hidden font-sans">
       {/* 1. Static Background Image Layer */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/KATDICT-2-scaled.jpg')" }}
       />
 
-      {/* 2. Dark Overlay with Tailwind v4 Linear Syntax */}
-      <div className="absolute inset-0 bg-linear-to-b from-zinc-950/85 via-zinc-900/90 to-zinc-950" />
+      {/* 2. Soft, Organic Dark Overlay (Deep charcoal transition for clear text readability) */}
+      <div className="absolute inset-0 bg-linear-to-r from-zinc-950 via-zinc-950/85 to-zinc-900/40 max-md:bg-linear-to-b max-md:from-zinc-950/90 max-md:to-zinc-900/70" />
 
-      {/* 3. Foreground Content Container */}
+      {/* 3. Left-Aligned Foreground Content Container */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="relative z-10 w-full max-w-2xl mx-auto px-6 py-12 flex flex-col items-center text-center"
+        className="relative z-10 w-full max-w-2xl px-6 sm:px-12 md:px-20 py-16 flex flex-col items-start text-left"
       >
-        {/* Location Check Badge */}
+        {/* Humanized Location Status Badge */}
         <motion.div
           variants={itemVariants}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-medium uppercase tracking-wider mb-6 backdrop-blur-md"
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-8 backdrop-blur-md"
         >
-          <MapPin className="w-3.5 h-3.5 text-green-500" />
-          KATDICT Geofence Active
+          <MapPin className="w-3.5 h-3.5 text-emerald-500" />
+          Inside KATDICT Workspace
         </motion.div>
 
         {/* Branding & Typography */}
         <motion.h1
           variants={itemVariants}
-          className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-none"
+          className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-none space-y-2"
         >
-          KATDICT <br />
-          <span className="text-transparent bg-clip-text bg-linear-to-r from-green-400 to-emerald-500">
-            Attendance Portal
-          </span>
+          <span>KATDICT Workspace</span>
+          <br />
+          <span className="text-emerald-500 block mt-2">Attendance System</span>
         </motion.h1>
 
         <motion.p
@@ -78,16 +76,16 @@ export default function Onboarding() {
         {/* Action Row - Clean layout maintaining horizontal alignment on all device sizes */}
         <motion.div
           variants={itemVariants}
-          className="mt-10 w-full flex flex-row items-center justify-center gap-3 sm:gap-4 max-w-md"
+          className="mt-10 w-full flex flex-row items-center gap-3 sm:gap-4 max-w-sm"
         >
-          {/* Register Button */}
-          <button className="group flex-1 flex items-center justify-center gap-2 bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold text-sm sm:text-base py-3.5 px-4 sm:px-6 rounded-xl transition-all active:scale-98 shadow-md">
-            <UserPlus className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:scale-105" />
+          {/* Join Now / Register Button (Solid Organic Emerald Green) */}
+          <button className="group flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm sm:text-base py-3.5 px-4 rounded-xl transition-all active:scale-98 shadow-md shadow-emerald-950/20">
+            <UserPlus className="w-4 h-4 sm:w-5 sm:h-5" />
             <span>Join Now</span>
           </button>
 
-          {/* Login Button */}
-          <button className="group flex-1 flex items-center justify-center gap-2 bg-zinc-900/90 hover:bg-zinc-800 text-zinc-100 font-semibold text-sm sm:text-base py-3.5 px-4 sm:px-6 rounded-xl border border-zinc-800 backdrop-blur-md transition-all active:scale-98">
+          {/* Sign In / Login Button */}
+          <button className="group flex-1 flex items-center justify-center gap-2 bg-zinc-900/90 hover:bg-zinc-800 text-zinc-100 font-semibold text-sm sm:text-base py-3.5 px-4 rounded-xl border border-zinc-800/80 backdrop-blur-md transition-all active:scale-98">
             <LogIn className="w-4 h-4 sm:w-5 sm:h-5 text-zinc-400 transition-transform group-hover:translate-x-0.5" />
             <span>Sign In</span>
           </button>
@@ -98,7 +96,7 @@ export default function Onboarding() {
           variants={itemVariants}
           className="mt-12 text-xs text-zinc-500 font-medium tracking-wide"
         >
-          Requires device location access for checking in
+          Device location verification required for login.
         </motion.p>
       </motion.div>
     </div>
