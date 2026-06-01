@@ -3,10 +3,12 @@ import {
   History,
   Settings,
   LogOut,
+  ShieldCheck,
   ShieldAlert,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
+import { useAuth } from "../../context/AuthContext";
 
 interface SidebarProps {
   onCloseMobile?: () => void;
@@ -15,6 +17,7 @@ interface SidebarProps {
 export default function Sidebar({ onCloseMobile }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, isWithinWorkspace, logoutSession } = useAuth();
 
   const menuItems = [
     { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -23,6 +26,7 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
   ];
 
   const handleLogout = () => {
+    logoutSession(); // Clears localStorage and global auth states cleanly
     toast.success("Logged out successfully from workspace session.");
     navigate("/login");
     if (onCloseMobile) onCloseMobile();
@@ -40,6 +44,18 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
             Workspace Engine v1.0
           </p>
         </div>
+
+        {/* User Quick Profile Meta */}
+        {user && (
+          <div className="px-1 py-0.5">
+            <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+              Developer
+            </p>
+            <h2 className="text-sm font-black text-zinc-800 dark:text-zinc-200 truncate">
+              {user.fullName}
+            </h2>
+          </div>
+        )}
 
         {/* Navigation Portal Links */}
         <nav className="space-y-1.5">
@@ -69,10 +85,18 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
 
       {/* Footer Profile Status Panel */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold font-mono">
-          <ShieldAlert className="w-4 h-4 shrink-0" />
-          <span className="truncate">Location Security Armed</span>
-        </div>
+        {/* Dynamic Location Security Verification Status Ribbon */}
+        {isWithinWorkspace ? (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold font-mono">
+            <ShieldCheck className="w-4 h-4 shrink-0" />
+            <span className="truncate">Grid Presence Verified</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold font-mono animate-pulse">
+            <ShieldAlert className="w-4 h-4 shrink-0" />
+            <span className="truncate">Remote Mode: Restricted</span>
+          </div>
+        )}
 
         <button
           onClick={handleLogout}

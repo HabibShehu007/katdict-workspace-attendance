@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { useThemeStore } from "./store/useThemeStore";
@@ -37,29 +38,31 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 transition-colors duration-100">
-          <Routes>
-            {/* The entry point of the app */}
-            <Route path="/" element={<Onboarding />} />
+        <AuthProvider>
+          <div className="min-h-screen bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 transition-colors duration-100">
+            <Routes>
+              {/* The entry point of the app */}
+              <Route path="/" element={<Onboarding />} />
 
-            {/* Auth Routes */}
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/login" element={<Login />} />
+              {/* Auth Routes */}
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/login" element={<Login />} />
 
-            {/* Dashboard and sub-pages Route */}
-            <Route path="/dashboard/*" element={<Dashboard />} />
+              {/* Dashboard and sub-pages Route */}
+              <Route path="/dashboard/*" element={<Dashboard />} />
 
-            {/* Fallback to onboarding if route doesn't exist */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+              {/* Fallback to onboarding if route doesn't exist */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
 
-          <Toaster
-            position="top-center"
-            richColors
-            closeButton
-            theme={theme === "dark" ? "dark" : "light"}
-          />
-        </div>
+            <Toaster
+              position="top-center"
+              richColors
+              closeButton
+              theme={theme === "dark" ? "dark" : "light"}
+            />
+          </div>
+        </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );
