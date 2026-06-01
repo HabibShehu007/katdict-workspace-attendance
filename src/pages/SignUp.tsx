@@ -1,0 +1,195 @@
+import { motion } from "framer-motion";
+import { User, Mail, Lock, ArrowLeft, Loader2, MapPin } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useSignUp } from "../hooks/useSignUp";
+import ThemeToggle from "../components/ThemeToggle";
+
+export default function SignUp() {
+  const navigate = useNavigate();
+
+  const {
+    fullName,
+    setFullName,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    confirmPassword,
+    setConfirmPassword,
+    isLoading,
+    handleSignUpSubmit,
+  } = useSignUp({
+    onSuccess: () => navigate("/login"),
+  });
+
+  return (
+    <div className="min-h-screen w-full flex bg-zinc-50 dark:bg-zinc-800 transition-colors duration-400 ease-in-out">
+      {/* Navigation Overlay Header */}
+      <div className="absolute top-6 left-6 right-6 z-20 flex justify-between items-center pointer-events-none">
+        <button
+          onClick={() => navigate("/")}
+          className="pointer-events-auto group flex items-center gap-2 text-sm font-semibold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors bg-white/80 dark:bg-zinc-800/40 py-2 px-3.5 rounded-xl backdrop-blur-md border border-zinc-200 dark:border-zinc-700/20 shadow-sm cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+          <span>Back</span>
+        </button>
+        <div className="pointer-events-auto">
+          <ThemeToggle />
+        </div>
+      </div>
+
+      {/* LEFT PANEL: Graphic Context (Hidden on mobile) */}
+      <div
+        className="hidden md:flex md:w-1/2 relative bg-cover bg-center items-end p-12 overflow-hidden"
+        style={{ backgroundImage: "url('/KATDICT-2-scaled.jpg')" }}
+      >
+        {/* Dynamic Overlay that reacts to theme subtly */}
+        <div className="absolute inset-0 bg-linear-to-b from-zinc-950/40 via-zinc-950/80 to-zinc-950" />
+
+        <div className="relative z-10 max-w-sm space-y-3">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-widest">
+            <MapPin className="w-3 h-3" /> System Gate
+          </div>
+          <h2 className="text-3xl font-extrabold text-white tracking-tight">
+            Building the local ecosystem.
+          </h2>
+          <p className="text-sm text-zinc-400 leading-relaxed">
+            One line of clean code at a time. Join the workspace system to log
+            your contributions and view active developer logs.
+          </p>
+        </div>
+      </div>
+
+      {/* RIGHT PANEL: The Presentation Form */}
+      <div className="w-full md:w-1/2 flex items-center justify-center p-6 sm:p-12 md:p-16 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md space-y-8"
+        >
+          <div className="space-y-2">
+            <h1 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-white transition-colors">
+              Create Account
+            </h1>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 transition-colors">
+              Register your personal account for KATDICT Workspace.
+            </p>
+          </div>
+
+          <form onSubmit={handleSignUpSubmit} className="space-y-5">
+            {/* Full Name Input Field */}
+            <div className="space-y-1.5">
+              <label
+                htmlFor="fullName"
+                className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 transition-colors"
+              >
+                Full Name
+              </label>
+              <div className="relative flex items-center">
+                <User className="absolute left-4 w-5 h-5 text-zinc-400 dark:text-zinc-500 transition-colors" />
+                <input
+                  id="fullName"
+                  name="name"
+                  type="text"
+                  autoComplete="name"
+                  placeholder="Full Name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  disabled={isLoading}
+                  className="w-full bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium rounded-xl border border-zinc-200 dark:border-zinc-700/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-hidden py-4 pl-12 pr-4 transition-all disabled:opacity-50 text-base"
+                />
+              </div>
+            </div>
+
+            {/* Email Address Input Field */}
+            <div className="space-y-1.5">
+              <label
+                htmlFor="email"
+                className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 transition-colors"
+              >
+                Email Address
+              </label>
+              <div className="relative flex items-center">
+                <Mail className="absolute left-4 w-5 h-5 text-zinc-400 dark:text-zinc-500 transition-colors" />
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
+                  className="w-full bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium rounded-xl border border-zinc-200 dark:border-zinc-700/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-hidden py-4 pl-12 pr-4 transition-all disabled:opacity-50 text-base"
+                />
+              </div>
+            </div>
+
+            {/* Password Input Field */}
+            <div className="space-y-1.5">
+              <label
+                htmlFor="password"
+                className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 transition-colors"
+              >
+                Password
+              </label>
+              <div className="relative flex items-center">
+                <Lock className="absolute left-4 w-5 h-5 text-zinc-400 dark:text-zinc-500 transition-colors" />
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                  className="w-full bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium rounded-xl border border-zinc-200 dark:border-zinc-700/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-hidden py-4 pl-12 pr-4 transition-all disabled:opacity-50 text-base"
+                />
+              </div>
+            </div>
+
+            {/* Confirm Password Input Field */}
+            <div className="space-y-1.5">
+              <label
+                htmlFor="confirmPassword"
+                className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 transition-colors"
+              >
+                Confirm Password
+              </label>
+              <div className="relative flex items-center">
+                <Lock className="absolute left-4 w-5 h-5 text-zinc-400 dark:text-zinc-500 transition-colors" />
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={isLoading}
+                  className="w-full bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium rounded-xl border border-zinc-200 dark:border-zinc-700/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-hidden py-4 pl-12 pr-4 transition-all disabled:opacity-50 text-base"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full mt-2 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-md transition-all active:scale-98 disabled:opacity-70 cursor-pointer text-base shadow-emerald-900/20"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Creating Account...</span>
+                </>
+              ) : (
+                <span>Register Workspace Account</span>
+              )}
+            </button>
+          </form>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
