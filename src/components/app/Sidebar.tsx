@@ -21,7 +21,7 @@ export default function Sidebar({ onCloseMobile }: SidebarProps) {
 
   const menuItems = [
     { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-    { name: "History Logs", path: "/dashboard/history", icon: History },
+    { name: "History Logs", path: "/history", icon: History },
     { name: "Settings", path: "/dashboard/settings", icon: Settings },
   ];
 
