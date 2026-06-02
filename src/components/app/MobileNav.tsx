@@ -1,5 +1,5 @@
 import { Menu, X } from "lucide-react";
-import ThemeToggle from "../ThemeToggle";
+import ThemeToggle from "./ThemeToggle";
 
 interface MobileNavProps {
   isOpen: boolean;

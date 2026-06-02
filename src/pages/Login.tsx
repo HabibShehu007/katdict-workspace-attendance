@@ -10,8 +10,8 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useLogin } from "../hooks/useLogin";
-import ThemeToggle from "../components/ThemeToggle";
+import { useLogin } from "../hooks/auth_hooks/useLogin";
+import ThemeToggle from "../components/app/ThemeToggle";
 
 export default function Login() {
   const navigate = useNavigate();

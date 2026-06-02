@@ -1,4 +1,6 @@
 import { useState, useCallback } from "react";
+import { toast } from "sonner";
+import { useAuth } from "../../context/AuthContext"; // Import our brain
 
 export interface SubmittedLog {
   title: string;
@@ -7,111 +9,113 @@ export interface SubmittedLog {
   uiUrl?: string;
 }
 
-// Flip this to false whenever you are ready to point to your real live serverless routes!
-const IS_TESTING_MODE = true;
-
 export function useWorkspaceLog(dayName: string) {
-  const [hasAttendance, setHasAttendance] = useState<boolean>(false);
-  const [logData, setLogData] = useState<SubmittedLog | null>(null);
+  const {
+    user,
+    attendance,
+    refreshAttendance,
+    BYPASS_TIME_GUARD,
+    isAttendanceLoading,
+  } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 1. Save Attendance Only (Handles arrival check-in timestamp)
+  // 1. Save Attendance Only
   const saveAttendanceOnly = useCallback(async () => {
+    if (!user) return false;
     setIsSubmitting(true);
     setError(null);
+
     try {
-      if (IS_TESTING_MODE) {
-        // Simulate a 1-second server database write response
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        console.log(
-          `[TEST MODE] Mock API: Attendance payload saved for ${dayName}`,
-        );
+      const now = new Date();
+      // Rules only apply if Bypass is OFF
+      const isLate =
+        !BYPASS_TIME_GUARD &&
+        (now.getHours() > 9 ||
+          (now.getHours() === 9 && now.getMinutes() >= 41));
+
+      const response = await fetch("/api/workspace/attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id, // Dynamically use the logged-in user
+          day: dayName,
+          timestamp: now.toISOString(),
+          isLate: isLate,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Server rejected attendance.");
+
+      // Tell the context to refresh and sync the UI immediately
+      await refreshAttendance();
+
+      if (isLate) {
+        toast.warning(`Attendance marked late for ${dayName}.`);
       } else {
-        const response = await fetch("/api/workspace/attendance", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            day: dayName,
-            timestamp: new Date().toISOString(),
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Server rejected attendance log creation request.");
-        }
+        toast.success(`Excellent timing! Verified for ${dayName}.`);
       }
-
-      setHasAttendance(true);
-      console.log(`Attendance successfully secured for ${dayName}`);
+      return true;
     } catch (err: any) {
-      setError(
-        err.message || "Failed to lock in your attendance. Please try again.",
-      );
-      console.error(err);
+      toast.error(err.message || "Attendance failed.");
+      return false;
     } finally {
       setIsSubmitting(false);
     }
-  }, [dayName]);
+  }, [user, dayName, refreshAttendance, BYPASS_TIME_GUARD]);
 
-  // 2. Submit Both / Tasks Log (Handles full project metrics data)
+  // 2. Submit Daily Progress Logs
   const submitWorkLog = useCallback(
     async (data: SubmittedLog) => {
+      if (!user) return false;
       setIsSubmitting(true);
-      setError(null);
+
       try {
-        if (IS_TESTING_MODE) {
-          // Simulate a 1-second server database write response
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          console.log(
-            `[TEST MODE] Mock API: Work log payload saved for ${dayName}`,
-            data,
+        const now = new Date();
+        // Strict 12 PM cut-off rule (ignored if BYPASS_TIME_GUARD is true)
+        if (!BYPASS_TIME_GUARD && now.getHours() >= 12) {
+          toast.error(
+            "Submission closed! Logs must be submitted before 12:00 PM.",
           );
-        } else {
-          const response = await fetch("/api/workspace/logs", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              day: dayName,
-              title: data.title,
-              desc: data.desc,
-              stacks: data.stacks,
-              uiUrl: data.uiUrl,
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error("Server rejected work log database write request.");
-          }
+          return false;
         }
 
-        // If user skipped option 1 and went straight to both, flip attendance state true
-        if (!hasAttendance) {
-          setHasAttendance(true);
-        }
+        const response = await fetch("/api/workspace/logs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: user.id,
+            day: dayName,
+            ...data,
+          }),
+        });
 
-        setLogData(data);
-        console.log("Workspace logs successfully written to database:", data);
+        if (!response.ok) throw new Error("Server rejected log write.");
+
+        await refreshAttendance();
+        toast.success(`Progress logs for ${dayName} submitted!`);
+        return true;
       } catch (err: any) {
-        setError(
-          err.message ||
-            "Failed to submit your workspace logs. Please try again.",
-        );
-        console.error(err);
+        toast.error(err.message || "Failed to submit logs.");
+        return false;
       } finally {
         setIsSubmitting(false);
       }
     },
-    [dayName, hasAttendance],
+    [user, dayName, refreshAttendance, BYPASS_TIME_GUARD],
   );
 
   return {
-    hasAttendance,
-    logData,
+    hasAttendance: attendance.hasAttendance,
+    isAttendanceLoading,
+    logData: attendance.isLogComplete
+      ? {
+          title: attendance.data?.project_title,
+          desc: attendance.data?.project_description,
+          stacks: attendance.data?.tech_stacks || [],
+          uiUrl: attendance.data?.ui_reference_url,
+        }
+      : null,
     isSubmitting,
     error,
     saveAttendanceOnly,

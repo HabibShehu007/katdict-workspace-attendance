@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import Sidebar from "./Sidebar";
-import MobileNav from "./MobileNav";
-import ThemeToggle from "../ThemeToggle";
+import Sidebar from "../app/Sidebar";
+import MobileNav from "../app/MobileNav";
+import ThemeToggle from "../app/ThemeToggle";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;

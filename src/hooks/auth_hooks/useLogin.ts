@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { useAuth } from "../context/AuthContext"; // Import hook hook
+import { useAuth } from "../../context/AuthContext"; // Import hook hook
 
 interface UseLoginArgs {
   onSuccess: () => void;
