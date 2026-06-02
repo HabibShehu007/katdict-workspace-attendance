@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Clock, FilePlus2 } from "lucide-react";
+import { useAttendanceOptionModal } from "../../hooks/WorkSpaceLog-Components-hooks/useAttendanceOptionModal";
 
 interface AttendanceOptionModalProps {
   isOpen: boolean;
@@ -14,6 +15,14 @@ export default function AttendanceOptionModal({
   onAttendanceOnly,
   onBoth,
 }: AttendanceOptionModalProps) {
+  // Pull isolated logic cleanly into the component view
+  const { handleAttendanceOnlyAction, handleBothAction } =
+    useAttendanceOptionModal({
+      onClose,
+      onAttendanceOnlySelected: onAttendanceOnly,
+      onBothSelected: onBoth,
+    });
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -56,7 +65,7 @@ export default function AttendanceOptionModal({
             <div className="space-y-3">
               {/* Option 1: Attendance Only */}
               <button
-                onClick={onAttendanceOnly}
+                onClick={handleAttendanceOnlyAction}
                 className="w-full flex items-start gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500 dark:hover:border-emerald-500 bg-zinc-50/50 dark:bg-zinc-800/30 text-left transition-all group cursor-pointer"
               >
                 <div className="p-2.5 bg-amber-500/10 text-amber-500 rounded-lg group-hover:bg-amber-500/20 shrink-0">
@@ -75,7 +84,7 @@ export default function AttendanceOptionModal({
 
               {/* Option 2: Both Attendance and Logs */}
               <button
-                onClick={onBoth}
+                onClick={handleBothAction}
                 className="w-full flex items-start gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500 dark:hover:border-emerald-500 bg-zinc-50/50 dark:bg-zinc-800/30 text-left transition-all group cursor-pointer"
               >
                 <div className="p-2.5 bg-emerald-500/10 text-emerald-600 rounded-lg group-hover:bg-emerald-500/20 shrink-0">
