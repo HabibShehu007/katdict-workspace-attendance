@@ -13,6 +13,7 @@ import Login from "./pages/Login";
 //  Dashboard and sub-pages imports
 import Dashboard from "./pages/Dashboard";
 import WorkspaceHistory from "./pages/WorkspaceHistory";
+import Performance from "./pages/Performance";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,7 +53,7 @@ function App() {
               {/* Dashboard and sub-pages Route */}
               <Route path="/dashboard/*" element={<Dashboard />} />
               <Route path="/history" element={<WorkspaceHistory />} />
-
+              <Route path="/performance" element={<Performance />} />
               {/* Fallback to onboarding if route doesn't exist */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
