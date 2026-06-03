@@ -16,7 +16,7 @@ export default function HistoryCard({ log, onInspectClick }: HistoryCardProps) {
       className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-xs text-left"
     >
       <div className="space-y-2.5 flex-1 min-w-0">
-        {/* Card Metadata Meta Header Row */}
+        {/* Info badges and metadata row */}
         <div className="flex flex-wrap items-center gap-2 text-[11px] font-black tracking-wider uppercase">
           <span className="text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-2.5 py-1 rounded-md">
             {log.day_name}
@@ -25,7 +25,7 @@ export default function HistoryCard({ log, onInspectClick }: HistoryCardProps) {
             {log.formatted_date}
           </span>
 
-          {/* Micro Attendance Badges */}
+          {/* Time Check Badge */}
           <span
             className={`inline-flex items-center gap-1 font-bold ${
               log.is_late
@@ -34,9 +34,10 @@ export default function HistoryCard({ log, onInspectClick }: HistoryCardProps) {
             }`}
           >
             <Timer className="w-3 h-3" />
-            {log.is_late ? "Late Arrival" : "On Time"}
+            {log.is_late ? "Late" : "On Time"}
           </span>
 
+          {/* Location Badge */}
           <span
             className={`inline-flex items-center gap-1 font-bold ${
               log.is_on_site
@@ -49,12 +50,12 @@ export default function HistoryCard({ log, onInspectClick }: HistoryCardProps) {
           </span>
         </div>
 
-        {/* Dynamic Project Focus Node */}
+        {/* Project Name and Task Description */}
         <div className="space-y-1">
           <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-100 truncate">
             {log.is_log_empty ? (
               <span className="text-zinc-400 dark:text-zinc-500 font-normal italic">
-                No task metrics details submitted for this date.
+                No work details submitted for this day.
               </span>
             ) : (
               log.project_title
@@ -68,13 +69,13 @@ export default function HistoryCard({ log, onInspectClick }: HistoryCardProps) {
         </div>
       </div>
 
-      {/* Action Element Right Trigger Anchor */}
+      {/* View Details Action Button */}
       <button
         onClick={() => onInspectClick(log)}
         className="flex items-center justify-center gap-1.5 text-xs font-black px-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/80 cursor-pointer active:scale-95 transition-all self-start sm:self-center shrink-0"
       >
         <FileText className="w-3.5 h-3.5 text-zinc-500" />
-        <span>View Full Log</span>
+        <span>View Details</span>
         <ChevronRight className="w-3.5 h-3.5 ml-0.5 text-zinc-400" />
       </button>
     </motion.div>

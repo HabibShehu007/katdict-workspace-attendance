@@ -7,6 +7,7 @@ import {
   Code2,
   AlertTriangle,
   CheckCircle2,
+  Clock,
 } from "lucide-react";
 import type { WorkspaceHistoryItem } from "../../context/AuthContext";
 
@@ -23,10 +24,25 @@ export default function HistoryDetailsModal({
 }: HistoryDetailsModalProps) {
   if (!isOpen || !log) return null;
 
+  // Helper to turn the timestamp into a clean HH:MM:SS format
+  const formatTime = (timeString: string) => {
+    try {
+      const date = new Date(timeString);
+      return date.toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+      });
+    } catch (e) {
+      return timeString; // Fallback if the string is already formatted
+    }
+  };
+
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        {/* Backdrop overlay fog */}
+        {/* Dark blur background */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -35,19 +51,19 @@ export default function HistoryDetailsModal({
           className="absolute inset-0 bg-zinc-950/40 backdrop-blur-xs"
         />
 
-        {/* Modal Window Engine Panel */}
+        {/* Modal Window */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
           className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-xl overflow-hidden text-left z-10"
         >
-          {/* Header Bar Anchor */}
+          {/* Header */}
           <div className="p-5 border-b border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between">
             <div className="flex items-center gap-2 text-zinc-900 dark:text-white">
               <Calendar className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span className="text-xs font-black tracking-wide uppercase">
-                {log.day_name} — Log Assessment
+                {log.day_name} — Summary
               </span>
             </div>
             <button
@@ -58,18 +74,19 @@ export default function HistoryDetailsModal({
             </button>
           </div>
 
-          {/* Modal Details Scroll Area Node */}
+          {/* Main Content */}
           <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
-            {/* Arrival & Punctuality Micro Audit Grid */}
+            {/* Time and Status Grid */}
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3.5 bg-zinc-50 dark:bg-zinc-800/30 border border-zinc-100 dark:border-zinc-800/50 rounded-xl">
-                <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase block tracking-wider">
-                  Arrival Stamp
+                <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase block tracking-wider flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> Sign-In Time
                 </span>
                 <span className="text-sm font-black text-zinc-800 dark:text-zinc-200 block mt-0.5">
-                  {log.arrival_time}
+                  {formatTime(log.arrival_time)}
                 </span>
               </div>
+
               <div
                 className={`p-3.5 border rounded-xl flex flex-col justify-center ${
                   log.is_late
@@ -78,37 +95,37 @@ export default function HistoryDetailsModal({
                 }`}
               >
                 <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase block tracking-wider">
-                  Punctuality Score
+                  Arrival Status
                 </span>
                 <span className="text-xs font-black flex items-center gap-1 mt-0.5">
                   {log.is_late ? (
                     <>
                       <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />{" "}
-                      Arrived Late
+                      Late
                     </>
                   ) : (
                     <>
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />{" "}
-                      Standard On-Time
+                      On Time
                     </>
                   )}
                 </span>
               </div>
             </div>
 
-            {/* Task Details Segment Node */}
+            {/* Task Details */}
             {log.is_log_empty ? (
               <div className="p-4 border border-zinc-200 border-dashed rounded-xl text-center py-6">
                 <p className="text-xs text-zinc-400 dark:text-zinc-500 font-medium italic">
-                  Attendance verified, but no production metric records were
-                  appended for this specific date timeframe.
+                  Attendance recorded, but no work tasks were submitted for this
+                  day.
                 </p>
               </div>
             ) : (
               <>
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider block">
-                    Project Designation
+                    Project
                   </span>
                   <h2 className="text-sm font-bold text-zinc-900 dark:text-white leading-snug">
                     {log.project_title}
@@ -117,18 +134,18 @@ export default function HistoryDetailsModal({
 
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider block">
-                    Operational Summary Metrics
+                    Work Progress
                   </span>
                   <p className="text-xs text-zinc-600 dark:text-zinc-300 font-medium leading-relaxed whitespace-pre-wrap bg-zinc-50 dark:bg-zinc-800/20 p-4 rounded-xl border border-zinc-100 dark:border-zinc-800/40">
                     {log.project_description}
                   </p>
                 </div>
 
-                {/* Tech Tags Sub Deployment Array Block */}
+                {/* Tech Stack List */}
                 {log.tech_stacks && log.tech_stacks.length > 0 && (
                   <div className="space-y-2">
                     <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider flex items-center gap-1">
-                      <Code2 className="w-3 h-3" /> Stack Frameworks Used
+                      <Code2 className="w-3 h-3" /> Built With
                     </span>
                     <div className="flex flex-wrap gap-1.5">
                       {log.tech_stacks.map((tech) => (
@@ -143,7 +160,7 @@ export default function HistoryDetailsModal({
                   </div>
                 )}
 
-                {/* Optional UI Anchor Link Render Block */}
+                {/* Project Link */}
                 {log.ui_reference_url && (
                   <div className="pt-2">
                     <a
@@ -153,7 +170,7 @@ export default function HistoryDetailsModal({
                       className="inline-flex items-center gap-2 text-xs font-black text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
                     >
                       <Globe className="w-3.5 h-3.5" />
-                      <span>Launch live workspace review link</span>
+                      <span>View Project Live</span>
                     </a>
                   </div>
                 )}

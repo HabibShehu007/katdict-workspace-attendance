@@ -16,19 +16,23 @@ import HistoryDetailsModal from "../components/history_components/HistoryDetails
 import type { WorkspaceHistoryItem } from "../context/AuthContext";
 
 export default function WorkspaceHistory() {
-  const { historyLogs, isHistoryLoading, changeRange } = useWorkspaceHistory();
+  // Pull the active filter state along with the optimized router trigger
+  const { historyLogs, isHistoryLoading, activeFilter, changeFilter } =
+    useWorkspaceHistory();
 
-  // Track state management for active modals and inspection nodes
-  const [activeRange, setActiveRange] = useState<string>("7days");
+  // Track state management for the popups and log inspections
   const [selectedLog, setSelectedLog] = useState<WorkspaceHistoryItem | null>(
     null,
   );
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  // Router handler to update query parameters on click
-  const handleRangeToggle = (rangeId: string) => {
-    setActiveRange(rangeId);
-    changeRange(rangeId);
+  // Handle changes when the user switches tabs or selects custom calendar parameters
+  const handleFilterToggle = (
+    filterId: string,
+    startDate?: string,
+    endDate?: string,
+  ) => {
+    changeFilter(filterId, startDate, endDate);
   };
 
   const handleOpenInspector = (log: WorkspaceHistoryItem) => {
@@ -39,22 +43,21 @@ export default function WorkspaceHistory() {
   return (
     <DashboardLayout>
       <div className="w-full max-w-5xl mx-auto p-4 sm:p-6 space-y-6 min-h-screen">
-        {/* Top Header & Filter Action Shell */}
+        {/* Top header filter layout */}
         <HistoryHeader
-          activeRange={activeRange}
-          onRangeChange={handleRangeToggle}
+          activeRange={activeFilter}
+          onRangeChange={handleFilterToggle}
         />
 
-        {/* Dynamic Display Grid Engine */}
+        {/* Dynamic content rendering block */}
         {isHistoryLoading ? (
           <div className="w-full py-20 flex flex-col items-center justify-center gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-emerald-600 dark:text-emerald-400" />
             <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500 tracking-wide uppercase">
-              Compiling database records...
+              Loading your logs...
             </p>
           </div>
         ) : historyLogs.length === 0 ? (
-          /* Empty State Node */
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -64,15 +67,13 @@ export default function WorkspaceHistory() {
               <Inbox className="w-6 h-6" />
             </div>
             <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200">
-              No History Logs Found
+              No history found
             </h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium max-w-xs mt-1 leading-relaxed">
-              We couldn't resolve any presence logs or metric markers for the
-              chosen timeframe parameter.
+              We couldn't find any workspace submissions for the selected dates.
             </p>
           </motion.div>
         ) : (
-          /* Main Chronological Stack Feed */
           <div className="w-full space-y-3">
             {historyLogs.map((log) => (
               <HistoryCard
@@ -85,7 +86,7 @@ export default function WorkspaceHistory() {
         )}
       </div>
 
-      {/* Persistent Single Inspector Overlay Component Overlay Node */}
+      {/* Detail viewer popup modal */}
       <HistoryDetailsModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

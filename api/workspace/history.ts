@@ -18,7 +18,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     // 2. Unpack parameters from the client request query string
-    const { userId, range } = req.query;
+    // Added specific startDate/endDate parameters for your upcoming inline calendar bypass!
+    const {
+      userId,
+      range,
+      startDate: customStart,
+      endDate: customEnd,
+    } = req.query;
 
     if (!userId) {
       return res
@@ -26,50 +32,57 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .json({ error: "Missing required parameter: userId" });
     }
 
-    // 3. Dynamic Date Range Engine (Calculated based on Server's current UTC/Local clock)
     const now = new Date();
-
-    // Set up default parameters for boundaries
     let startDate: string;
-    let endDate: string = now.toISOString().split("T")[0]; // Today is always our upper ceiling
+    let endDate: string;
 
-    switch (range) {
-      case "today":
-        startDate = endDate;
-        break;
+    // 3. High-Performance Range Calculator Engine
+    if (range === "custom" && customStart && customEnd) {
+      // Direct pass-through for your custom calendar picker fallbacks
+      startDate = customStart as string;
+      endDate = customEnd as string;
+    } else if (range === "current_week" || !range) {
+      /**
+       * ⚡ THE CURRENT WEEK BRAIN
+       * Dynamically calculates Monday through Sunday boundaries for the user's active week.
+       */
+      const currentDayIndex = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
 
-      case "yesterday": {
-        const yesterday = new Date();
-        yesterday.setDate(now.getDate() - 1);
-        const yesterdayStr = yesterday.toISOString().split("T")[0];
+      // Calculate how many days back Monday is
+      const daysToMonday = currentDayIndex === 0 ? 6 : currentDayIndex - 1;
 
-        startDate = yesterdayStr;
-        endDate = yesterdayStr; // Ceiling is restricted to just yesterday's calendar date
-        break;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - daysToMonday);
+
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+
+      startDate = monday.toISOString().split("T")[0];
+      endDate = sunday.toISOString().split("T")[0];
+    } else {
+      // Legacy compatibility ranges if needed anywhere else, defaulting to an upper bounds ceiling of today
+      endDate = now.toISOString().split("T")[0];
+
+      switch (range) {
+        case "7days": {
+          const lastWeek = new Date();
+          lastWeek.setDate(now.getDate() - 7);
+          startDate = lastWeek.toISOString().split("T")[0];
+          break;
+        }
+        case "14days": {
+          const lastTwoWeeks = new Date();
+          lastTwoWeeks.setDate(now.getDate() - 14);
+          startDate = lastTwoWeeks.toISOString().split("T")[0];
+          break;
+        }
+        default:
+          startDate = "1970-01-01"; // Fallback to grab everything if "all" is explicitly declared
+          break;
       }
-
-      case "7days": {
-        const lastWeek = new Date();
-        lastWeek.setDate(now.getDate() - 7);
-        startDate = lastWeek.toISOString().split("T")[0];
-        break;
-      }
-
-      case "14days": {
-        const lastTwoWeeks = new Date();
-        lastTwoWeeks.setDate(now.getDate() - 14);
-        startDate = lastTwoWeeks.toISOString().split("T")[0];
-        break;
-      }
-
-      default:
-        // Default senior fallback: If no range filter parameter is passed, send ALL log history
-        startDate = "1970-01-01";
-        break;
     }
 
-    // 4. Execute Relational SQL Query utilizing Date Bounds
-    // Using ORDER BY log_date DESC to keep chronological flow (newest inputs on top)
+    // 4. Execute Relational SQL Query utilizing calculated Date Bounds
     const historyLogs = await sql`
       SELECT 
         id,
@@ -91,11 +104,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ORDER BY log_date DESC;
     `;
 
-    // 5. Send unified collections response back to client hook
+    // 5. Send unified collection back to client context
     return res.status(200).json({
       success: true,
       count: historyLogs.length,
-      rangeFilterUsed: range || "all",
+      rangeFilterUsed: range || "current_week",
+      dateBounds: { startDate, endDate },
       data: historyLogs,
     });
   } catch (error: any) {
