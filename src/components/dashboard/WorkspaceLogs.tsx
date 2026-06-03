@@ -64,7 +64,7 @@ export default function WorkspaceLogs({ dayName }: WorkspaceLogsProps) {
   const handleOpenLogModalClick = () => {
     if (isPastNoonCutoff()) {
       toast.error("Log submission closed!", {
-        description: "The submission window closed at 12:00 PM noon.",
+        description: "The modification window closed at 12:00 PM noon.",
       });
       return;
     }
@@ -196,6 +196,7 @@ export default function WorkspaceLogs({ dayName }: WorkspaceLogsProps) {
 
       <WorkspaceLogModal
         isOpen={showLogFormModal}
+        isSubmitting={isSubmitting} // Correctly forwarding the button's loading spinner state
         onClose={() => setShowLogFormModal(false)}
         onSubmit={async (data) => {
           const success = await submitWorkLog(data);

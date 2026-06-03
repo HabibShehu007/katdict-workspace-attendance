@@ -1,3 +1,4 @@
+// context/AuthContext.tsx
 import {
   createContext,
   useContext,
@@ -5,61 +6,15 @@ import {
   useEffect,
   useCallback,
 } from "react";
+import type {
+  UserProfile,
+  AttendanceStatus,
+  WorkspaceHistoryItem,
+  AuthContextType,
+} from "../types/auth.types";
 
-// =========================================================
-// 🛠️ DEVELOPMENT SWITCHES
-// =========================================================
 const BYPASS_LOCATION_GUARD = true;
-const BYPASS_TIME_GUARD = true; // Set to true to bypass 9:40AM and 12PM rules
-
-interface UserProfile {
-  id: string; // This will be "4" in your current case
-  fullName: string;
-  email: string;
-  createdAt: string;
-}
-
-interface AttendanceStatus {
-  hasAttendance: boolean;
-  isLogComplete: boolean;
-  data: any | null;
-}
-
-// 📦 High-Fidelity Type Contract for History Entries
-export interface WorkspaceHistoryItem {
-  id: number;
-  user_id: number;
-  day_name: string;
-  formatted_date: string;
-  arrival_time: string;
-  is_late: boolean;
-  is_on_site: boolean;
-  project_title: string;
-  project_description: string;
-  tech_stacks: string[];
-  ui_reference_url?: string;
-  is_log_empty: boolean;
-}
-
-interface AuthContextType {
-  user: UserProfile | null;
-  isWithinWorkspace: boolean;
-  isAuthenticated: boolean;
-  attendance: AttendanceStatus; // Shared attendance state
-  isAttendanceLoading: boolean;
-  refreshAttendance: () => Promise<void>; // Function to manually re-sync
-  loginSession: (userData: UserProfile, isWithin: boolean) => void;
-  logoutSession: () => void;
-  BYPASS_TIME_GUARD: boolean;
-  // ✨ Optimized History Cache Contracts
-  historyLogs: WorkspaceHistoryItem[];
-  isHistoryLoading: boolean;
-  fetchHistory: (
-    range?: string,
-    startDate?: string,
-    endDate?: string,
-  ) => Promise<void>;
-}
+const BYPASS_TIME_GUARD = true;
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -68,7 +23,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isWithinWorkspace, setIsWithinWorkspace] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // State to track if attendance is marked for the day
   const [attendance, setAttendance] = useState<AttendanceStatus>({
     hasAttendance: false,
     isLogComplete: false,
@@ -77,14 +31,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const [isAttendanceLoading, setIsAttendanceLoading] =
     useState<boolean>(false);
-
-  // ✨ History Engine Local Caching States
   const [historyLogs, setHistoryLogs] = useState<WorkspaceHistoryItem[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState<boolean>(false);
 
-  // Function to check the database for today's status
+  // Dynamic status checker for real-time state synchronization
   const refreshAttendance = useCallback(async (userId: string) => {
-    setIsAttendanceLoading(true); // Turn loader on before query fires
+    setIsAttendanceLoading(true);
     try {
       const response = await fetch(`/api/workspace/status?userId=${userId}`);
       if (response.ok) {
@@ -93,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setAttendance({
             hasAttendance: true,
             isLogComplete: !data.is_log_empty,
-            data: data,
+            data: data, // Automatically incorporates new metadata tracking values
           });
         } else {
           setAttendance({
@@ -106,11 +58,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error("Attendance sync failed", err);
     } finally {
-      setIsAttendanceLoading(false); // Shut loader off when network returns
+      setIsAttendanceLoading(false);
     }
   }, []);
 
-  // ✨ The Upgraded High-Speed Synchronized History Fetcher Logic
   const fetchHistory = useCallback(
     async (
       range: string = "current_week",
@@ -128,7 +79,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setIsHistoryLoading(true);
       try {
-        // Build robust dynamic query parameters supporting custom parameters cleanly
         let url = `/api/workspace/history?userId=${currentUserId}&range=${range}`;
         if (range === "custom" && startDate && endDate) {
           url += `&startDate=${startDate}&endDate=${endDate}`;
@@ -184,7 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setIsWithinWorkspace(false);
     setAttendance({ hasAttendance: false, isLogComplete: false, data: null });
-    setHistoryLogs([]); // Clear history cache on logout
+    setHistoryLogs([]);
     localStorage.removeItem("katdict_user");
     localStorage.removeItem("katdict_geo_status");
   };
@@ -199,12 +149,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated,
         attendance,
         isAttendanceLoading,
-        refreshAttendance: () =>
-          user ? refreshAttendance(user.id) : Promise.resolve(),
+        // Robust parameter pass fallback handling
+        refreshAttendance: () => {
+          const storedUser = localStorage.getItem("katdict_user");
+          const targetId =
+            user?.id || (storedUser ? JSON.parse(storedUser).id : null);
+          return targetId ? refreshAttendance(targetId) : Promise.resolve();
+        },
         loginSession,
         logoutSession,
         BYPASS_TIME_GUARD,
-        // Expose history data array cache to your frontend layers
         historyLogs,
         isHistoryLoading,
         fetchHistory,

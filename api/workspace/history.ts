@@ -1,3 +1,4 @@
+// api/workspace/history.ts (or your data retrieval file)
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { neon } from "@neondatabase/serverless";
 
@@ -18,7 +19,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     // 2. Unpack parameters from the client request query string
-    // Added specific startDate/endDate parameters for your upcoming inline calendar bypass!
     const {
       userId,
       range,
@@ -38,14 +38,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // 3. High-Performance Range Calculator Engine
     if (range === "custom" && customStart && customEnd) {
-      // Direct pass-through for your custom calendar picker fallbacks
       startDate = customStart as string;
       endDate = customEnd as string;
     } else if (range === "current_week" || !range) {
-      /**
-       * ⚡ THE CURRENT WEEK BRAIN
-       * Dynamically calculates Monday through Sunday boundaries for the user's active week.
-       */
       const currentDayIndex = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
 
       // Calculate how many days back Monday is
@@ -60,7 +55,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       startDate = monday.toISOString().split("T")[0];
       endDate = sunday.toISOString().split("T")[0];
     } else {
-      // Legacy compatibility ranges if needed anywhere else, defaulting to an upper bounds ceiling of today
       endDate = now.toISOString().split("T")[0];
 
       switch (range) {
@@ -83,6 +77,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // 4. Execute Relational SQL Query utilizing calculated Date Bounds
+    // Updated: Added github_url and live_preview_url columns to the SELECT projection
     const historyLogs = await sql`
       SELECT 
         id,
@@ -96,6 +91,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         project_description,
         tech_stacks,
         ui_reference_url,
+        github_url,        -- Fetches your new Git repository link
+        live_preview_url,  -- Fetches your new Live deployment link
         is_log_empty
       FROM daily_attendance_logs
       WHERE user_id = ${Number(userId)}

@@ -8,6 +8,8 @@ interface UseWorkspaceLogModalProps {
     desc: string;
     stacks: string[];
     uiUrl?: string;
+    githubUrl: string; // Enforced strict string
+    liveUrl?: string;
   }) => void;
 }
 
@@ -20,6 +22,8 @@ export function useWorkspaceLogModal({
   const [selectedStacks, setSelectedStacks] = useState<string[]>([]);
   const [customStacks, setCustomStacks] = useState<string[]>([]);
   const [uiUrl, setUiUrl] = useState("");
+  const [githubUrl, setGithubUrl] = useState("");
+  const [liveUrl, setLiveUrl] = useState("");
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
   // Dynamic placeholder switcher interval loop
@@ -51,7 +55,7 @@ export function useWorkspaceLogModal({
   const handleFormSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      if (!title.trim() || !desc.trim()) return;
+      if (!title.trim() || !desc.trim() || !githubUrl.trim()) return; // Added githubUrl safety check here too
 
       // Send pristine data structure directly upstream to our main hook runner
       onSubmit({
@@ -59,16 +63,20 @@ export function useWorkspaceLogModal({
         desc: desc.trim(),
         stacks: selectedStacks,
         uiUrl: uiUrl.trim() || undefined,
+        githubUrl: githubUrl.trim(), // 🔥 Fixed: Pass pristine string directly, NO fallback to undefined!
+        liveUrl: liveUrl.trim() || undefined,
       });
 
-      // Clean reset all fields on successful push
+      // Clean reset all fields on successful push to avoid stale data on next open
       setTitle("");
       setDesc("");
       setSelectedStacks([]);
       setCustomStacks([]);
       setUiUrl("");
+      setGithubUrl("");
+      setLiveUrl("");
     },
-    [title, desc, selectedStacks, uiUrl, onSubmit],
+    [title, desc, selectedStacks, uiUrl, githubUrl, liveUrl, onSubmit],
   );
 
   return {
@@ -80,6 +88,10 @@ export function useWorkspaceLogModal({
     customStacks,
     uiUrl,
     setUiUrl,
+    githubUrl,
+    setGithubUrl,
+    liveUrl,
+    setLiveUrl,
     placeholderIndex,
     handleToggleStack,
     handleAddCustomStack,

@@ -7,6 +7,8 @@ export interface SubmittedLog {
   desc: string;
   stacks: string[];
   uiUrl?: string;
+  githubUrl: string; // Updated: Now strictly enforced on the data contract layer
+  liveUrl?: string; // Updated: Captures deployment link structures
 }
 
 export function useWorkspaceLog(dayName: string) {
@@ -64,7 +66,7 @@ export function useWorkspaceLog(dayName: string) {
     }
   }, [user, dayName, refreshAttendance, BYPASS_TIME_GUARD]);
 
-  // 2. Submit Daily Progress Logs
+  // 2. Submit Daily Progress Logs (Handles Initial Writes & Updates before 12 PM)
   const submitWorkLog = useCallback(
     async (data: SubmittedLog) => {
       if (!user) return false;
@@ -75,13 +77,13 @@ export function useWorkspaceLog(dayName: string) {
         // Strict 12 PM cut-off rule (ignored if BYPASS_TIME_GUARD is true)
         if (!BYPASS_TIME_GUARD && now.getHours() >= 12) {
           toast.error(
-            "Submission closed! Logs must be submitted before 12:00 PM.",
+            "Submission closed! Logs cannot be submitted or modified after 12:00 PM.",
           );
           return false;
         }
 
         const response = await fetch("/api/workspace/logs", {
-          method: "POST",
+          method: "POST", // Assumes your backend routing safely handles overwrites/updates on POST
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userId: user.id,
@@ -93,7 +95,7 @@ export function useWorkspaceLog(dayName: string) {
         if (!response.ok) throw new Error("Server rejected log write.");
 
         await refreshAttendance();
-        toast.success(`Progress logs for ${dayName} submitted!`);
+        toast.success(`Progress logs for ${dayName} saved successfully!`);
         return true;
       } catch (err: any) {
         toast.error(err.message || "Failed to submit logs.");
@@ -114,6 +116,8 @@ export function useWorkspaceLog(dayName: string) {
           desc: attendance.data?.project_description,
           stacks: attendance.data?.tech_stacks || [],
           uiUrl: attendance.data?.ui_reference_url,
+          githubUrl: attendance.data?.github_url || "", // Mapped securely from backend DB schema
+          liveUrl: attendance.data?.live_url || "", // Mapped securely from backend DB schema
         }
       : null,
     isSubmitting,
