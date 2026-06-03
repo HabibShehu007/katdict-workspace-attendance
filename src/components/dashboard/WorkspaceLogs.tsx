@@ -78,6 +78,9 @@ export default function WorkspaceLogs({ dayName }: WorkspaceLogsProps) {
     return <WorkspaceSkeleton />;
   }
 
+  // Typecast logData to a dynamic format safely for our compatibility bridge lookups
+  const rawLog = logData as any;
+
   return (
     <>
       <div className="w-full space-y-6">
@@ -145,8 +148,16 @@ export default function WorkspaceLogs({ dayName }: WorkspaceLogsProps) {
             {/* Dynamic Inner Panel Content Node */}
             {logData ? (
               <WorkspaceActiveLogCard
-                logData={logData}
                 onModifyClick={handleOpenLogModalClick}
+                // Safe lookup evaluation blocks compilation error codes while linking production metrics
+                logData={{
+                  title: rawLog?.project_title || rawLog?.title || "",
+                  desc: rawLog?.project_description || rawLog?.desc || "",
+                  stacks: rawLog?.tech_stacks || rawLog?.stacks || [],
+                  uiUrl: rawLog?.ui_reference_url || rawLog?.uiUrl || "",
+                  githubUrl: rawLog?.github_url || rawLog?.githubUrl || "",
+                  liveUrl: rawLog?.live_preview_url || rawLog?.liveUrl || "",
+                }}
               />
             ) : (
               <div className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-3xl text-left py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
@@ -196,13 +207,12 @@ export default function WorkspaceLogs({ dayName }: WorkspaceLogsProps) {
 
       <WorkspaceLogModal
         isOpen={showLogFormModal}
-        isSubmitting={isSubmitting} // Correctly forwarding the button's loading spinner state
+        isSubmitting={isSubmitting}
         onClose={() => setShowLogFormModal(false)}
+        initialData={rawLog} // Pass rawLog (the database object)
         onSubmit={async (data) => {
           const success = await submitWorkLog(data);
-          if (success) {
-            setShowLogFormModal(false);
-          }
+          if (success) setShowLogFormModal(false);
         }}
       />
     </>

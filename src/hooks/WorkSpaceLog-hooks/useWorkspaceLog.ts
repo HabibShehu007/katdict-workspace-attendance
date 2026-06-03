@@ -106,7 +106,6 @@ export function useWorkspaceLog(dayName: string) {
     },
     [user, dayName, refreshAttendance, BYPASS_TIME_GUARD],
   );
-
   return {
     hasAttendance: attendance.hasAttendance,
     isAttendanceLoading,
@@ -116,8 +115,9 @@ export function useWorkspaceLog(dayName: string) {
           desc: attendance.data?.project_description,
           stacks: attendance.data?.tech_stacks || [],
           uiUrl: attendance.data?.ui_reference_url,
-          githubUrl: attendance.data?.github_url || "", // Mapped securely from backend DB schema
-          liveUrl: attendance.data?.live_url || "", // Mapped securely from backend DB schema
+          githubUrl: attendance.data?.github_url || "",
+          // Change live_url to live_preview_url to match your DB schema
+          liveUrl: attendance.data?.live_preview_url || "",
         }
       : null,
     isSubmitting,

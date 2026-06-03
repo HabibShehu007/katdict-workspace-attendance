@@ -3,11 +3,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   X,
   Calendar,
-  Globe,
+  Layers,
   Code2,
   AlertTriangle,
   CheckCircle2,
   Clock,
+  GitBranch,
+  ExternalLink,
 } from "lucide-react";
 import type { WorkspaceHistoryItem } from "../../context/AuthContext";
 
@@ -125,7 +127,7 @@ export default function HistoryDetailsModal({
               <>
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider block">
-                    Project
+                    Project Focus
                   </span>
                   <h2 className="text-sm font-bold text-zinc-900 dark:text-white leading-snug">
                     {log.project_title}
@@ -134,7 +136,7 @@ export default function HistoryDetailsModal({
 
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider block">
-                    Work Progress
+                    Work Description
                   </span>
                   <p className="text-xs text-zinc-600 dark:text-zinc-300 font-medium leading-relaxed whitespace-pre-wrap bg-zinc-50 dark:bg-zinc-800/20 p-4 rounded-xl border border-zinc-100 dark:border-zinc-800/40">
                     {log.project_description}
@@ -145,7 +147,7 @@ export default function HistoryDetailsModal({
                 {log.tech_stacks && log.tech_stacks.length > 0 && (
                   <div className="space-y-2">
                     <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider flex items-center gap-1">
-                      <Code2 className="w-3 h-3" /> Built With
+                      <Code2 className="w-3 h-3" /> Technologies Used
                     </span>
                     <div className="flex flex-wrap gap-1.5">
                       {log.tech_stacks.map((tech) => (
@@ -160,20 +162,59 @@ export default function HistoryDetailsModal({
                   </div>
                 )}
 
-                {/* Project Link */}
-                {log.ui_reference_url && (
-                  <div className="pt-2">
-                    <a
-                      href={log.ui_reference_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-2 text-xs font-black text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
-                    >
-                      <Globe className="w-3.5 h-3.5" />
-                      <span>View Project Live</span>
-                    </a>
+                {/* Shared Project Links Section */}
+                <div className="pt-2 space-y-2 border-t border-zinc-100 dark:border-zinc-800/60">
+                  <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider block">
+                    Project Links
+                  </span>
+
+                  <div className="flex flex-col gap-2">
+                    {/* 1. Required GitHub Link Row */}
+                    {log.github_url && (
+                      <div>
+                        <a
+                          href={log.github_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 text-xs font-black text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+                        >
+                          <GitBranch className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
+                          <span>GitHub Repository</span>
+                        </a>
+                      </div>
+                    )}
+
+                    {/* 2. UI Reference Link Row */}
+                    {log.ui_reference_url && (
+                      <div>
+                        <a
+                          href={log.ui_reference_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 text-xs font-black text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+                        >
+                          <Layers className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
+                          <span>UI Reference Link</span>
+                        </a>
+                      </div>
+                    )}
+
+                    {/* 3. Optional Live Preview Link Row */}
+                    {log.live_preview_url && (
+                      <div>
+                        <a
+                          href={log.live_preview_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 text-xs font-black text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
+                          <span>Live Production URL</span>
+                        </a>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </>
             )}
           </div>

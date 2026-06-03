@@ -13,7 +13,7 @@ import HistoryCard from "../components/history_components/HistoryCard";
 import HistoryDetailsModal from "../components/history_components/HistoryDetailsModal";
 
 // High-fidelity type contract directly from our brain layers
-import type { WorkspaceHistoryItem } from "../context/AuthContext";
+import type { WorkspaceHistoryItem } from "../context/AuthContext"; // Fixes automatically once AuthContext exports it!
 
 export default function WorkspaceHistory() {
   // Pull the active filter state along with the optimized router trigger

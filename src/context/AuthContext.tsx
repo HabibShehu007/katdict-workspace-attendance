@@ -9,9 +9,12 @@ import {
 import type {
   UserProfile,
   AttendanceStatus,
-  WorkspaceHistoryItem,
   AuthContextType,
 } from "../types/auth.types";
+
+// 🔥 Fixes the page import error: Re-exporting the type straight out of our type vault!
+import type { WorkspaceHistoryItem } from "../types/auth.types";
+export type { WorkspaceHistoryItem };
 
 const BYPASS_LOCATION_GUARD = true;
 const BYPASS_TIME_GUARD = true;

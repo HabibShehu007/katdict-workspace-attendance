@@ -20,10 +20,11 @@ interface WorkspaceLogModalProps {
     desc: string;
     stacks: string[];
     uiUrl?: string;
-    githubUrl: string; // Mandatory string constraint update
+    githubUrl: string;
     liveUrl?: string;
   }) => void;
   isSubmitting?: boolean;
+  initialData?: any; // 🔥 Added this to accept existing log data
 }
 
 export default function WorkspaceLogModal({
@@ -31,6 +32,7 @@ export default function WorkspaceLogModal({
   onClose,
   onSubmit,
   isSubmitting = false,
+  initialData, // 🔥 Destructure it here
 }: WorkspaceLogModalProps) {
   const {
     title,
@@ -49,7 +51,11 @@ export default function WorkspaceLogModal({
     handleToggleStack,
     handleAddCustomStack,
     handleFormSubmit,
-  } = useWorkspaceLogModal({ isOpen, onSubmit });
+  } = useWorkspaceLogModal({
+    isOpen,
+    onSubmit,
+    initialData, // 🔥 Pass it into the hook so it can pre-fill the fields
+  });
 
   return (
     <AnimatePresence>

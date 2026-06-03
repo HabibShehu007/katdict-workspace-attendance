@@ -8,14 +8,16 @@ interface UseWorkspaceLogModalProps {
     desc: string;
     stacks: string[];
     uiUrl?: string;
-    githubUrl: string; // Enforced strict string
+    githubUrl: string;
     liveUrl?: string;
   }) => void;
+  initialData?: any;
 }
 
 export function useWorkspaceLogModal({
   isOpen,
   onSubmit,
+  initialData,
 }: UseWorkspaceLogModalProps) {
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
@@ -26,7 +28,48 @@ export function useWorkspaceLogModal({
   const [liveUrl, setLiveUrl] = useState("");
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
-  // Dynamic placeholder switcher interval loop
+  // THE PREFILL ENGINE: Preserved, but corrected to recognize actual data
+  useEffect(() => {
+    if (isOpen) {
+      // FIX: Check if initialData exists. We removed the !initialData.is_log_empty
+      // check because it was forcing a reset when data WAS actually present.
+      if (initialData && Object.keys(initialData).length > 0) {
+        setTitle(initialData.project_title || "");
+        setDesc(initialData.project_description || "");
+        setSelectedStacks(initialData.tech_stacks || []);
+
+        const defaultAvailableStacks = [
+          "React",
+          "Node.js",
+          "Fastify",
+          "Tailwind CSS",
+          "Next.js",
+          "TypeScript",
+          "Supabase",
+        ];
+
+        const extractedCustom = (initialData.tech_stacks || []).filter(
+          (stack: string) => !defaultAvailableStacks.includes(stack),
+        );
+        setCustomStacks(extractedCustom);
+
+        setUiUrl(initialData.ui_reference_url || "");
+        setGithubUrl(initialData.github_url || "");
+        setLiveUrl(initialData.live_preview_url || "");
+      } else {
+        // Clear fresh for new entries
+        setTitle("");
+        setDesc("");
+        setSelectedStacks([]);
+        setCustomStacks([]);
+        setUiUrl("");
+        setGithubUrl("");
+        setLiveUrl("");
+      }
+    }
+  }, [isOpen, initialData]);
+
+  // Dynamic placeholder switcher: Preserved
   useEffect(() => {
     if (!isOpen) return;
     const interval = setInterval(() => {
@@ -55,19 +98,17 @@ export function useWorkspaceLogModal({
   const handleFormSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      if (!title.trim() || !desc.trim() || !githubUrl.trim()) return; // Added githubUrl safety check here too
+      if (!title.trim() || !desc.trim() || !githubUrl.trim()) return;
 
-      // Send pristine data structure directly upstream to our main hook runner
       onSubmit({
         title: title.trim(),
         desc: desc.trim(),
         stacks: selectedStacks,
         uiUrl: uiUrl.trim() || undefined,
-        githubUrl: githubUrl.trim(), // 🔥 Fixed: Pass pristine string directly, NO fallback to undefined!
+        githubUrl: githubUrl.trim(),
         liveUrl: liveUrl.trim() || undefined,
       });
 
-      // Clean reset all fields on successful push to avoid stale data on next open
       setTitle("");
       setDesc("");
       setSelectedStacks([]);

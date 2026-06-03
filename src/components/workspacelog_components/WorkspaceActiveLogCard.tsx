@@ -6,14 +6,19 @@ import {
   FolderGit2,
   Sparkles,
   FileEdit,
+  GitBranch,
+  Layers,
+  ExternalLink,
 } from "lucide-react";
-import WorkspaceLinkPreview from "./WorkspaceLinkPreview"; // Import the split file sub-component
 
+// Keep your original schema names intact so data mapping doesn't break!
 interface SubmittedLog {
   title: string;
   desc: string;
   stacks: string[];
   uiUrl?: string;
+  githubUrl?: string; // safely added alongside your original fields
+  liveUrl?: string; // safely added alongside your original fields
 }
 
 interface WorkspaceActiveLogCardProps {
@@ -25,6 +30,9 @@ export default function WorkspaceActiveLogCard({
   logData,
   onModifyClick,
 }: WorkspaceActiveLogCardProps) {
+  // Safe array initialization to prevent map errors if stacks are undefined
+  const techStacks = logData.stacks || [];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -66,13 +74,13 @@ export default function WorkspaceActiveLogCard({
             </p>
           </div>
 
-          {logData.stacks.length > 0 && (
+          {techStacks.length > 0 && (
             <div className="space-y-3">
               <h4 className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
                 <Code2 className="w-3.5 h-3.5" /> Tools &amp; Technologies Used
               </h4>
               <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                {logData.stacks.map((stack) => (
+                {techStacks.map((stack) => (
                   <span
                     key={stack}
                     className="text-xs font-bold bg-white dark:bg-zinc-950 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 rounded-xl shadow-2xs transition-transform hover:-translate-y-0.5"
@@ -85,7 +93,7 @@ export default function WorkspaceActiveLogCard({
           )}
         </div>
 
-        {/* Right Section Area: Summary Cards & Attached Preview */}
+        {/* Right Section Area: Summary Cards & Attached Previews */}
         <div className="lg:col-span-5 flex flex-col justify-between gap-6 lg:border-l lg:border-zinc-100 dark:lg:border-zinc-800/80 lg:pl-8">
           <div className="space-y-4">
             <h4 className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
@@ -110,18 +118,79 @@ export default function WorkspaceActiveLogCard({
                   <span className="text-xs font-bold">Tools Used</span>
                 </div>
                 <span className="text-[10px] font-black text-zinc-900 dark:text-white bg-zinc-200 dark:bg-zinc-700 px-2.5 py-0.5 rounded-md">
-                  {logData.stacks.length} Total
+                  {techStacks.length} Total
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Clean Split Link Preview Component */}
+          {/* New Clean Section: Renders all your links dynamically using the correct frontend keys */}
           <div className="space-y-3">
             <h4 className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
-              Attached Link
+              Attached Links
             </h4>
-            <WorkspaceLinkPreview url={logData.uiUrl} />
+
+            <div className="flex flex-col gap-2.5">
+              {/* 1. Mandatory Code Link */}
+              {logData.githubUrl && (
+                <a
+                  href={logData.githubUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/20 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800/60 rounded-xl group transition-all"
+                >
+                  <GitBranch className="w-4 h-4 text-zinc-400 group-hover:text-emerald-500 transition-colors" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-black text-zinc-800 dark:text-zinc-200">
+                      GitHub Repository
+                    </p>
+                    <p className="text-[10px] font-medium text-zinc-400 dark:text-zinc-500 truncate">
+                      {logData.githubUrl}
+                    </p>
+                  </div>
+                </a>
+              )}
+
+              {/* 2. Optional Design System UI Reference Link */}
+              {logData.uiUrl && (
+                <a
+                  href={logData.uiUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/20 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800/60 rounded-xl group transition-all"
+                >
+                  <Layers className="w-4 h-4 text-zinc-400 group-hover:text-emerald-500 transition-colors" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-black text-zinc-800 dark:text-zinc-200">
+                      UI Reference Link
+                    </p>
+                    <p className="text-[10px] font-medium text-zinc-400 dark:text-zinc-500 truncate">
+                      {logData.uiUrl}
+                    </p>
+                  </div>
+                </a>
+              )}
+
+              {/* 3. Optional Hosted Staging Project Preview Link */}
+              {logData.liveUrl && (
+                <a
+                  href={logData.liveUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/20 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800/60 rounded-xl group transition-all"
+                >
+                  <ExternalLink className="w-4 h-4 text-zinc-400 group-hover:text-emerald-500 transition-colors" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-black text-zinc-800 dark:text-zinc-200">
+                      Live Production URL
+                    </p>
+                    <p className="text-[10px] font-medium text-zinc-400 dark:text-zinc-500 truncate">
+                      {logData.liveUrl}
+                    </p>
+                  </div>
+                </a>
+              )}
+            </div>
           </div>
 
           {/* Action Button */}
