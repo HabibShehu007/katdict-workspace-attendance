@@ -2,8 +2,8 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 
 interface TogglerProps {
-  activeView: "weekly" | number;
-  onToggle: (view: "weekly" | number) => void;
+  activeView: "weekly" | string;
+  onToggle: (view: "weekly" | string) => void;
   isLocked: boolean;
 }
 
@@ -14,7 +14,7 @@ export function PerformanceToggler({
 }: TogglerProps) {
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 
-  const handleSelection = (view: "weekly" | number) => {
+  const handleSelection = (view: "weekly" | string) => {
     if (view === "weekly" && isLocked) {
       toast.error(
         "Overall week performance is under review until Friday at 12:00 PM.",
@@ -43,17 +43,17 @@ export function PerformanceToggler({
         <span className="relative z-10">Weekly</span>
       </button>
 
-      {days.map((day, index) => (
+      {days.map((day) => (
         <button
           key={day}
-          onClick={() => handleSelection(index)}
+          onClick={() => handleSelection(day)}
           className={`relative px-4 py-2 rounded-xl text-[10px] font-bold uppercase transition-all ${
-            activeView === index
+            activeView === day
               ? "text-zinc-900 dark:text-white"
               : "text-zinc-400"
           }`}
         >
-          {activeView === index && (
+          {activeView === day && (
             <motion.div
               layoutId="pill"
               className="absolute inset-0 bg-white dark:bg-zinc-700 rounded-xl shadow-sm"
