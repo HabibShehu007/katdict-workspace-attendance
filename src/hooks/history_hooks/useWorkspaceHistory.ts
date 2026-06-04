@@ -18,12 +18,18 @@ export function useWorkspaceHistory() {
     endDate: string;
   } | null>(null);
 
-  // Load the initial current week data immediately on component mount
+  // Optimized useEffect
   useEffect(() => {
-    fetchHistory("current_week").then(() => {
+    // Only fetch if we don't have data in the global state already
+    if (historyLogs.length === 0) {
+      fetchHistory("current_week").then(() => {
+        setIsInitialLoaded(true);
+      });
+    } else {
+      // If we already have data, just mark it as loaded
       setIsInitialLoaded(true);
-    });
-  }, [fetchHistory]);
+    }
+  }, [fetchHistory, historyLogs.length]); // Dependencies are now safer
 
   // Sync state context into our local fast memory cache only during standard week views
   useEffect(() => {

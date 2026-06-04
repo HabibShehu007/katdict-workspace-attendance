@@ -16,7 +16,7 @@ import type {
 import type { WorkspaceHistoryItem } from "../types/auth.types";
 export type { WorkspaceHistoryItem };
 
-const BYPASS_LOCATION_GUARD = true;
+const BYPASS_LOCATION_GUARD = false;
 const BYPASS_TIME_GUARD = true;
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -65,12 +65,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Inside AuthContext.tsx - update the fetchHistory function
   const fetchHistory = useCallback(
     async (
       range: string = "current_week",
       startDate?: string,
       endDate?: string,
+      force: boolean = false, // Add this parameter
     ) => {
+      // 1. Caching Guard: If we have data and aren't forcing a refresh, exit early
+      if (historyLogs.length > 0 && !force) return;
+
       const storedUser = localStorage.getItem("katdict_user");
       let currentUserId = user?.id;
 
@@ -100,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsHistoryLoading(false);
       }
     },
-    [user?.id],
+    [user?.id, historyLogs.length], // Dependency updated
   );
 
   useEffect(() => {

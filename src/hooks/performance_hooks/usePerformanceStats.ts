@@ -8,25 +8,40 @@ export function usePerformanceStats(historyLogs: WorkspaceHistoryItem[]) {
 
     if (!historyLogs || historyLogs.length === 0) return null;
 
-    // 1. Calculate Daily Breakdown (for your toggler)
-    const dailyData = historyLogs.map((log) => ({
-      date: log.formatted_date,
-      day: log.day_name,
-      punctuality: !log.is_late ? 100 : 0,
-      completion: !log.is_log_empty ? 100 : 0,
-    }));
+    const dailyData = historyLogs.map((log) => {
+      const isAbsentOrBlocked = log.is_log_empty || !log.is_on_site;
 
-    // 2. Calculate Weekly Averages
-    const total = dailyData.length;
+      const punctuality = isAbsentOrBlocked ? 0 : !log.is_late ? 100 : 0;
+      const completion = isAbsentOrBlocked ? 0 : 100;
+      // Daily consistency is 100 if completed, else 0
+      const consistency = isAbsentOrBlocked ? 0 : 100;
+
+      // Calculate grade for this specific day
+      const dailyGrade = Math.round(
+        (punctuality + completion + consistency) / 3,
+      );
+
+      return {
+        date: log.formatted_date,
+        day: log.day_name,
+        punctuality,
+        completion,
+        consistency,
+        grade: dailyGrade, // Now accessible per day!
+      };
+    });
+
+    // Calculate Weekly Averages
+    const totalDays = dailyData.length;
     const avgPunctuality =
-      dailyData.reduce((a, b) => a + b.punctuality, 0) / total;
+      dailyData.reduce((a, b) => a + b.punctuality, 0) / totalDays;
     const avgCompletion =
-      dailyData.reduce((a, b) => a + b.completion, 0) / total;
-    const consistency =
-      (dailyData.filter((s) => s.completion === 100).length / total) * 100;
+      dailyData.reduce((a, b) => a + b.completion, 0) / totalDays;
+    const successfulDays = dailyData.filter((s) => s.completion === 100).length;
+    const consistency = (successfulDays / totalDays) * 100;
 
     const rawGrade = (avgPunctuality + avgCompletion + consistency) / 3;
-    const finalGrade = rawGrade === 100 ? 100 : Math.max(90, rawGrade - 5);
+    const finalGrade = Math.min(100, Math.max(0, rawGrade));
 
     return {
       summary: {
@@ -36,7 +51,7 @@ export function usePerformanceStats(historyLogs: WorkspaceHistoryItem[]) {
         overallGrade: isFridayNoon ? Math.round(finalGrade) : null,
         isLocked: !isFridayNoon,
       },
-      dailyData, // Now we can toggle through this in the UI!
+      dailyData,
     };
   }, [historyLogs]);
 }
