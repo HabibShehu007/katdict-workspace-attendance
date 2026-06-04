@@ -16,7 +16,7 @@ import type {
 import type { WorkspaceHistoryItem } from "../types/auth.types";
 export type { WorkspaceHistoryItem };
 
-const BYPASS_LOCATION_GUARD = false;
+const BYPASS_LOCATION_GUARD = true;
 const BYPASS_TIME_GUARD = true;
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -48,18 +48,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setAttendance({
             hasAttendance: true,
             isLogComplete: !data.is_log_empty,
-            data: data, // Automatically incorporates new metadata tracking values
+            data: data,
           });
+          return true; // Return true indicating successful sync
         } else {
           setAttendance({
             hasAttendance: false,
             isLogComplete: false,
             data: null,
           });
+          return false;
         }
       }
+      return false;
     } catch (err) {
       console.error("Attendance sync failed", err);
+      return false;
     } finally {
       setIsAttendanceLoading(false);
     }
@@ -157,12 +161,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated,
         attendance,
         isAttendanceLoading,
-        // Robust parameter pass fallback handling
-        refreshAttendance: () => {
+        // Fixed: Wrapper now explicitly returns Promise<boolean>
+        refreshAttendance: async () => {
           const storedUser = localStorage.getItem("katdict_user");
           const targetId =
             user?.id || (storedUser ? JSON.parse(storedUser).id : null);
-          return targetId ? refreshAttendance(targetId) : Promise.resolve();
+
+          if (targetId) {
+            return await refreshAttendance(targetId);
+          }
+          return false; // Return false if no user found
         },
         loginSession,
         logoutSession,

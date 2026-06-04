@@ -1,14 +1,14 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
-import { useAuth } from "../../context/AuthContext"; // Import our brain
+import { useAuth } from "../../context/AuthContext";
 
 export interface SubmittedLog {
   title: string;
   desc: string;
   stacks: string[];
   uiUrl?: string;
-  githubUrl: string; // Updated: Now strictly enforced on the data contract layer
-  liveUrl?: string; // Updated: Captures deployment link structures
+  githubUrl: string;
+  liveUrl?: string;
 }
 
 export function useWorkspaceLog(dayName: string) {
@@ -16,9 +16,11 @@ export function useWorkspaceLog(dayName: string) {
     user,
     attendance,
     refreshAttendance,
+    fetchHistory,
     BYPASS_TIME_GUARD,
     isAttendanceLoading,
   } = useAuth();
+
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +32,6 @@ export function useWorkspaceLog(dayName: string) {
 
     try {
       const now = new Date();
-      // Rules only apply if Bypass is OFF
       const isLate =
         !BYPASS_TIME_GUARD &&
         (now.getHours() > 9 ||
@@ -40,7 +41,7 @@ export function useWorkspaceLog(dayName: string) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: user.id, // Dynamically use the logged-in user
+          userId: user.id,
           day: dayName,
           timestamp: now.toISOString(),
           isLate: isLate,
@@ -49,8 +50,9 @@ export function useWorkspaceLog(dayName: string) {
 
       if (!response.ok) throw new Error("Server rejected attendance.");
 
-      // Tell the context to refresh and sync the UI immediately
+      // Sync status and force-refresh history engine
       await refreshAttendance();
+      await fetchHistory("current_week", undefined, undefined, true);
 
       if (isLate) {
         toast.warning(`Attendance marked late for ${dayName}.`);
@@ -64,9 +66,9 @@ export function useWorkspaceLog(dayName: string) {
     } finally {
       setIsSubmitting(false);
     }
-  }, [user, dayName, refreshAttendance, BYPASS_TIME_GUARD]);
+  }, [user, dayName, refreshAttendance, fetchHistory, BYPASS_TIME_GUARD]);
 
-  // 2. Submit Daily Progress Logs (Handles Initial Writes & Updates before 12 PM)
+  // 2. Submit Daily Progress Logs
   const submitWorkLog = useCallback(
     async (data: SubmittedLog) => {
       if (!user) return false;
@@ -74,7 +76,6 @@ export function useWorkspaceLog(dayName: string) {
 
       try {
         const now = new Date();
-        // Strict 12 PM cut-off rule (ignored if BYPASS_TIME_GUARD is true)
         if (!BYPASS_TIME_GUARD && now.getHours() >= 12) {
           toast.error(
             "Submission closed! Logs cannot be submitted or modified after 12:00 PM.",
@@ -83,7 +84,7 @@ export function useWorkspaceLog(dayName: string) {
         }
 
         const response = await fetch("/api/workspace/logs", {
-          method: "POST", // Assumes your backend routing safely handles overwrites/updates on POST
+          method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userId: user.id,
@@ -94,7 +95,10 @@ export function useWorkspaceLog(dayName: string) {
 
         if (!response.ok) throw new Error("Server rejected log write.");
 
+        // Sync status and force-refresh history engine
         await refreshAttendance();
+        await fetchHistory("current_week", undefined, undefined, true);
+
         toast.success(`Progress logs for ${dayName} saved successfully!`);
         return true;
       } catch (err: any) {
@@ -104,8 +108,9 @@ export function useWorkspaceLog(dayName: string) {
         setIsSubmitting(false);
       }
     },
-    [user, dayName, refreshAttendance, BYPASS_TIME_GUARD],
+    [user, dayName, refreshAttendance, fetchHistory, BYPASS_TIME_GUARD],
   );
+
   return {
     hasAttendance: attendance.hasAttendance,
     isAttendanceLoading,
@@ -116,7 +121,6 @@ export function useWorkspaceLog(dayName: string) {
           stacks: attendance.data?.tech_stacks || [],
           uiUrl: attendance.data?.ui_reference_url,
           githubUrl: attendance.data?.github_url || "",
-          // Change live_url to live_preview_url to match your DB schema
           liveUrl: attendance.data?.live_preview_url || "",
         }
       : null,

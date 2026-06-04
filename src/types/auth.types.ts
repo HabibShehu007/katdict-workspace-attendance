@@ -36,7 +36,7 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   attendance: AttendanceStatus;
   isAttendanceLoading: boolean;
-  refreshAttendance: () => Promise<void>;
+  refreshAttendance: () => Promise<boolean>;
   loginSession: (userData: UserProfile, isWithin: boolean) => void;
   logoutSession: () => void;
   BYPASS_TIME_GUARD: boolean;
@@ -46,5 +46,6 @@ export interface AuthContextType {
     range?: string,
     startDate?: string,
     endDate?: string,
+    force?: boolean,
   ) => Promise<void>;
 }

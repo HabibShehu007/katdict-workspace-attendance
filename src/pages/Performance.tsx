@@ -6,6 +6,7 @@ import { PerformanceGauge } from "../components/performance/PerformanceGauge";
 import { TechStackChart } from "../components/performance/TechStackChart";
 import { HistoryTable } from "../components/performance/HistoryTable";
 import { PerformanceToggler } from "../components/performance/PerformanceToggler";
+import { PerformanceSkeleton } from "../components/performance/PerformanceSkeleton";
 import { Clock, Zap, Target, Award } from "lucide-react";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
 
@@ -67,7 +68,14 @@ export default function Performance() {
     };
   }, [activeView, stats, dailyLog]);
 
-  if (isHistoryLoading || !stats) return <div className="p-8">Loading...</div>;
+  // Loading state using your high-fidelity Skeleton component
+  if (isHistoryLoading || !stats) {
+    return (
+      <DashboardLayout>
+        <PerformanceSkeleton />
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -103,7 +111,6 @@ export default function Performance() {
             title="Grade"
             value={data.overallGrade}
             icon={Award}
-            isLocked={false}
           />
         </div>
 
