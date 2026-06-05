@@ -14,19 +14,42 @@
   }
 }
 
-/* Custom Swiper Pagination Styling overrides */
-.custom-stat-swiper .swiper-pagination-bullet-active {
-  background: #059669 !important; /* Tailwind emerald-600 */
-  width: 16px;
-  border-radius: 4px;
-  transition: all 0.3s ease;
+/* Custom Swiper Pagination Progress */
+.custom-stat-swiper .swiper-pagination {
+  bottom: 0px !important;
 }
 
 .custom-stat-swiper .swiper-pagination-bullet {
-  background: #a1a1aa; /* Tailwind zinc-400 */
-  opacity: 0.6;
+  width: 24px;
+  height: 4px;
+  border-radius: 4px;
+  background: #e4e4e7; /* Zinc 200 */
+  opacity: 1;
+  transition: all 0.3s ease;
 }
 
 .custom-stat-swiper .swiper-pagination-bullet-active {
-  opacity: 1;
+  background: #059669; /* Emerald 600 */
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-stat-swiper .swiper-pagination-bullet-active::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.3);
+  animation: progress-fill 3s linear forwards;
+}
+
+@keyframes progress-fill {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
 }

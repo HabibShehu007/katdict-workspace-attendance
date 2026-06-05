@@ -3,6 +3,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
+import "swiper/css/autoplay";
 
 interface StatCardsProps {
   dayName: string;
@@ -17,11 +18,10 @@ export default function StatCards({
   isWithinWorkspace,
   streakCount = 0,
 }: StatCardsProps) {
-  // Organic streak logic: dynamic messages
   const getStreakMessage = (count: number) => {
-    if (count === 0) return "Start your streak today!";
-    if (count === 1) return "Great start, keep it going!";
-    if (count >= 5) return "You're on fire! 🔥";
+    if (count === 0) return "Start your journey.";
+    if (count === 1) return "Great start!";
+    if (count >= 5) return "You're on fire!";
     return "Consistent progress!";
   };
 
@@ -32,78 +32,67 @@ export default function StatCards({
       title: dayName,
       desc: formattedDate,
       icon: <CalendarDays className="w-5 h-5" />,
-      iconBg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-      cardBg: "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800",
-      titleColor: "text-zinc-900 dark:text-white",
+      iconBg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-500",
     },
     {
       id: "streak",
       label: "Current Streak",
       title: `${streakCount} Day${streakCount !== 1 ? "s" : ""}`,
       desc: getStreakMessage(streakCount),
-      // Adding pulse animation only if streak is active (>0)
       icon: (
         <Flame
-          className={`w-5 h-5 ${streakCount > 0 ? "fill-amber-500 text-amber-500 animate-pulse" : "text-zinc-400"}`}
+          className={`w-5 h-5 ${streakCount > 0 ? "fill-amber-500 text-amber-500" : "text-zinc-400"}`}
         />
       ),
       iconBg:
-        streakCount > 0 ? "bg-amber-500/10" : "bg-zinc-100 dark:bg-zinc-800",
-      cardBg:
         streakCount > 0
-          ? "bg-gradient-to-br from-white to-amber-50/50 dark:from-zinc-900 dark:to-amber-950/10 border-amber-200 dark:border-amber-900/50"
-          : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800",
-      titleColor:
-        streakCount > 0
-          ? "text-amber-700 dark:text-amber-400"
-          : "text-zinc-900 dark:text-zinc-400",
+          ? "bg-amber-500/10 text-amber-600 dark:text-amber-500"
+          : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400",
     },
     {
       id: "location",
       label: "Location",
-      title: isWithinWorkspace ? "Katdict Office" : "Remote Mode",
-      desc: isWithinWorkspace ? "Verified connection" : "Working remotely",
+      title: isWithinWorkspace ? "Verified" : "Remote",
+      desc: isWithinWorkspace ? "Location Verified" : "Outside of Workspace",
       icon: isWithinWorkspace ? (
         <MapPin className="w-5 h-5" />
       ) : (
         <MapPinOff className="w-5 h-5" />
       ),
       iconBg: isWithinWorkspace
-        ? "bg-emerald-500/10 text-emerald-600"
-        : "bg-zinc-100 text-zinc-500",
-      cardBg: "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800",
-      titleColor: "text-zinc-900 dark:text-white",
+        ? "bg-sky-500/10 text-sky-600 dark:text-sky-500"
+        : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400",
     },
   ];
 
   return (
     <div className="w-full">
       {/* Mobile Slider */}
-      <div className="block sm:hidden pb-8 custom-stat-swiper">
+      <div className="block sm:hidden pb-12 custom-stat-swiper">
         <Swiper
           modules={[Autoplay, Pagination]}
           spaceBetween={16}
           slidesPerView={1.1}
           centeredSlides={true}
+          autoplay={{ delay: 3000, disableOnInteraction: false }}
+          pagination={{ clickable: true }}
           className="w-full"
         >
           {cards.map((card) => (
             <SwiperSlide key={card.id}>
-              <div
-                className={`p-5 rounded-2xl border ${card.cardBg} transition-all duration-500`}
-              >
+              <div className="p-5 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm">
                 <div
-                  className={`w-10 h-10 flex items-center justify-center rounded-xl mb-3 ${card.iconBg}`}
+                  className={`w-10 h-10 flex items-center justify-center rounded-2xl mb-4 ${card.iconBg}`}
                 >
                   {card.icon}
                 </div>
                 <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                   {card.label}
                 </h4>
-                <h2 className={`text-lg font-black mt-1 ${card.titleColor}`}>
+                <h2 className="text-lg font-black mt-1 text-zinc-900 dark:text-white">
                   {card.title}
                 </h2>
-                <p className="text-xs text-zinc-500">{card.desc}</p>
+                <p className="text-xs text-zinc-500 mt-1">{card.desc}</p>
               </div>
             </SwiperSlide>
           ))}
@@ -115,14 +104,14 @@ export default function StatCards({
         {cards.map((card) => (
           <div
             key={card.id}
-            className={`p-5 rounded-2xl border ${card.cardBg} flex items-start gap-4 shadow-sm hover:shadow-md transition-all duration-300`}
+            className="p-5 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-start gap-4 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-300"
           >
-            <div className={`p-3 rounded-xl ${card.iconBg}`}>{card.icon}</div>
+            <div className={`p-3 rounded-2xl ${card.iconBg}`}>{card.icon}</div>
             <div>
               <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                 {card.label}
               </h4>
-              <h2 className={`text-sm font-black mt-0.5 ${card.titleColor}`}>
+              <h2 className="text-sm font-black mt-0.5 text-zinc-900 dark:text-white">
                 {card.title}
               </h2>
               <p className="text-xs text-zinc-500 mt-0.5">{card.desc}</p>
