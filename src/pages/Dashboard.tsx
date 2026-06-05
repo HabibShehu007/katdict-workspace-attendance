@@ -34,9 +34,8 @@ export default function Dashboard() {
           {/* REGISTRATION CANVAS COMPONENT */}
           <WorkspaceLogs
             dayName={dayName}
-            // Use attendance status from context
             hasAttendance={attendance.hasAttendance}
-            onAddAttendance={() => {}} // Now handled via the API/Context refresh logic
+            // REMOVE: onAddAttendance={() => {}}
           />
         </LocationGuard>
       </div>

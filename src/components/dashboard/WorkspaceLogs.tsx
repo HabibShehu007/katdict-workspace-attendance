@@ -28,7 +28,6 @@ export default function WorkspaceLogs({
   const { BYPASS_TIME_GUARD } = useAuth(); // Read master time switch directly from the centralized brain
 
   const {
-    hasAttendance,
     isAttendanceLoading, // Picked up directly from our custom hook expansion
     logData,
     isSubmitting,
