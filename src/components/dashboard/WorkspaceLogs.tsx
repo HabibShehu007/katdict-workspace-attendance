@@ -18,6 +18,7 @@ import { useAuth } from "../../context/AuthContext"; // Import context to access
 
 interface WorkspaceLogsProps {
   dayName: string;
+  hasAttendance: boolean;
 }
 
 export default function WorkspaceLogs({ dayName }: WorkspaceLogsProps) {

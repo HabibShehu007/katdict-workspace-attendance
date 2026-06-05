@@ -4,6 +4,8 @@ export interface UserProfile {
   id: string;
   fullName: string;
   email: string;
+  current_streak?: number; // Add this
+  highest_streak?: number; // Add this
   createdAt: string; // Used to prevent filtering before signup date (e.g., "2026-06-02")
 }
 

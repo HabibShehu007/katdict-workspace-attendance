@@ -1,4 +1,3 @@
-import { useState } from "react";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
 import StatCards from "../components/dashboard/StatCards";
 import LocationGuard from "../components/dashboard/LocationGuard";
@@ -6,8 +5,8 @@ import WorkspaceLogs from "../components/dashboard/WorkspaceLogs";
 import { useAuth } from "../context/AuthContext";
 
 export default function Dashboard() {
-  const { isWithinWorkspace } = useAuth();
-  const [hasAttendance, setHasAttendance] = useState(false);
+  // Use the context for all state needs
+  const { isWithinWorkspace, user, attendance } = useAuth();
 
   // Dynamic Engine for Date Tracking
   const today = new Date();
@@ -26,7 +25,8 @@ export default function Dashboard() {
           dayName={dayName}
           formattedDate={formattedDate}
           isWithinWorkspace={isWithinWorkspace}
-          streakCount={7}
+          // Dynamically pull from the user object we updated in the hook/API
+          streakCount={user?.current_streak || 0}
         />
 
         {/* GEOLOCATION BOUNDARY SECURITY LAYER */}
@@ -34,8 +34,9 @@ export default function Dashboard() {
           {/* REGISTRATION CANVAS COMPONENT */}
           <WorkspaceLogs
             dayName={dayName}
-            hasAttendance={hasAttendance}
-            onAddAttendance={() => setHasAttendance(true)}
+            // Use attendance status from context
+            hasAttendance={attendance.hasAttendance}
+            onAddAttendance={() => {}} // Now handled via the API/Context refresh logic
           />
         </LocationGuard>
       </div>
