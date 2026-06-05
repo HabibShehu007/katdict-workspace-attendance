@@ -4,9 +4,13 @@ export interface UserProfile {
   id: string;
   fullName: string;
   email: string;
-  current_streak?: number; // Add this
-  highest_streak?: number; // Add this
-  createdAt: string; // Used to prevent filtering before signup date (e.g., "2026-06-02")
+  current_streak?: number;
+  highest_streak?: number;
+  createdAt: string;
+  // Professional adaptations
+  role?: string;
+  avatarUrl?: string;
+  bio?: string;
 }
 
 export interface AttendanceStatus {
@@ -19,7 +23,7 @@ export interface WorkspaceHistoryItem {
   id: number;
   user_id: number;
   day_name: string;
-  formatted_date: string; // expected format: YYYY-MM-DD
+  formatted_date: string;
   arrival_time: string;
   is_late: boolean;
   is_on_site: boolean;
@@ -27,21 +31,32 @@ export interface WorkspaceHistoryItem {
   project_description: string;
   tech_stacks: string[];
   ui_reference_url?: string;
-  github_url?: string; // Added for tracking source control repositories
-  live_preview_url?: string; // Added for tracking live deployment links
+  github_url?: string;
+  live_preview_url?: string;
   is_log_empty: boolean;
 }
 
 export interface AuthContextType {
+  // Auth & Session
   user: UserProfile | null;
-  isWithinWorkspace: boolean;
+  isLoading: boolean;
   isAuthenticated: boolean;
+  loginSession: (userData: UserProfile, isWithin: boolean) => void;
+  logoutSession: () => void;
+  setUser: (user: UserProfile | null) => void; // Added for internal state syncing
+
+  // Profile Management
+  updateProfile: (data: Partial<UserProfile>) => Promise<boolean>;
+  isUpdating: boolean;
+
+  // Attendance & Workspace
+  isWithinWorkspace: boolean;
   attendance: AttendanceStatus;
   isAttendanceLoading: boolean;
   refreshAttendance: () => Promise<boolean>;
-  loginSession: (userData: UserProfile, isWithin: boolean) => void;
-  logoutSession: () => void;
   BYPASS_TIME_GUARD: boolean;
+
+  // History Tracking
   historyLogs: WorkspaceHistoryItem[];
   isHistoryLoading: boolean;
   fetchHistory: (

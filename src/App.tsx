@@ -14,6 +14,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import WorkspaceHistory from "./pages/WorkspaceHistory";
 import Performance from "./pages/Performance";
+import ProfilePage from "./pages/Profile";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,6 +55,7 @@ function App() {
               <Route path="/dashboard/*" element={<Dashboard />} />
               <Route path="/history" element={<WorkspaceHistory />} />
               <Route path="/performance" element={<Performance />} />
+              <Route path="/profile" element={<ProfilePage />} />
               {/* Fallback to onboarding if route doesn't exist */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

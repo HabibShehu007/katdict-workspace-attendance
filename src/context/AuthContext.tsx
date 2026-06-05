@@ -7,6 +7,7 @@ import {
   useAuthLogic,
   BYPASS_TIME_GUARD,
 } from "../hooks/context_hooks/useAuthLogic";
+import { useProfileLogic } from "../hooks/context_hooks/useProfileLogic";
 
 export type { WorkspaceHistoryItem };
 
@@ -14,11 +15,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logic = useAuthLogic();
+  // Initialize the new profile logic hook
+  const profile = useProfileLogic(logic.user, logic.setUser);
 
   return (
     <AuthContext.Provider
       value={{
         ...logic,
+        ...profile, // Merging updateProfile and isUpdating into context
+        isLoading: logic.isLoading,
         isAuthenticated: !!logic.user,
         BYPASS_TIME_GUARD,
         refreshAttendance: async () => {
