@@ -21,7 +21,10 @@ interface WorkspaceLogsProps {
   hasAttendance: boolean;
 }
 
-export default function WorkspaceLogs({ dayName }: WorkspaceLogsProps) {
+export default function WorkspaceLogs({
+  dayName,
+  hasAttendance,
+}: WorkspaceLogsProps) {
   const { BYPASS_TIME_GUARD } = useAuth(); // Read master time switch directly from the centralized brain
 
   const {
