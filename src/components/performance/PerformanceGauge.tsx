@@ -8,11 +8,11 @@ interface GaugeProps {
 export function PerformanceGauge({ value, isLocked }: GaugeProps) {
   const percentage = value ?? 0;
 
-  // We use this for the text color and logic
+  // Now being used to color the percentage text dynamically
   const getColor = (v: number) => {
-    if (v < 40) return "#f43f5e"; // Rose
-    if (v < 75) return "#f59e0b"; // Amber
-    return "#10b981"; // Emerald
+    if (v < 40) return "text-rose-500";
+    if (v < 75) return "text-amber-500";
+    return "text-emerald-500";
   };
 
   return (
@@ -22,36 +22,35 @@ export function PerformanceGauge({ value, isLocked }: GaugeProps) {
       </h3>
 
       <div className="relative w-48 h-24 overflow-hidden">
-        {/* The Track (Grey Background) */}
+        {/* The Track */}
         <div
           className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-zinc-100 dark:border-zinc-800"
           style={{ clipPath: "polygon(0% 50%, 100% 50%, 100% 100%, 0% 100%)" }}
         />
 
-        {/* The Progress Fill (Conic Gradient) */}
+        {/* The Progress Fill */}
         <motion.div
           className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px]"
           style={{
-            // Conic gradient creates the color sweep
-            // 0% (Red) to 100% (Green)
             background:
               "conic-gradient(from 180deg, #f43f5e 0deg, #f59e0b 90deg, #10b981 180deg)",
             clipPath: "polygon(0% 50%, 100% 50%, 100% 100%, 0% 100%)",
-            border: "none", // Remove standard border, the background provides the color
+            border: "none",
           }}
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{
             opacity: isLocked ? 0 : 1,
             scale: 1,
-            // Rotate the gradient mask to reveal the percentage
             rotate: isLocked ? 0 : percentage * 1.8,
           }}
           transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
         />
 
-        {/* Center Text */}
+        {/* Center Text - Now using getColor */}
         <div className="absolute bottom-0 w-full text-center">
-          <span className="text-4xl font-black text-zinc-900 dark:text-white tabular-nums">
+          <span
+            className={`text-4xl font-black tabular-nums ${isLocked ? "text-zinc-400" : getColor(percentage)}`}
+          >
             {isLocked ? "🔒" : `${Math.round(percentage)}%`}
           </span>
         </div>
