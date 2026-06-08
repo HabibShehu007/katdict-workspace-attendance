@@ -135,6 +135,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         fullName: user.full_name,
         email: user.email,
         createdAt: user.created_at,
+        bio: user.bio, // ADD THIS
+        role: user.role, // ADD THIS
       },
     });
   } catch (error: any) {

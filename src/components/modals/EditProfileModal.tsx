@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Loader2, Save, User, Briefcase, FileText } from "lucide-react";
+import { X, Loader2, Save, Briefcase, FileText, Lock } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import type { UserProfile } from "../../types/auth.types";
 
@@ -25,7 +25,9 @@ export default function EditProfileModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await updateProfile(formData);
+    // We don't send fullName to the API since it's locked
+    const { fullName, ...updateData } = formData;
+    const success = await updateProfile(updateData);
     if (success) onClose();
   };
 
@@ -33,7 +35,6 @@ export default function EditProfileModal({
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -42,7 +43,6 @@ export default function EditProfileModal({
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
           />
 
-          {/* Modal Card */}
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -62,23 +62,23 @@ export default function EditProfileModal({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* LOCKED FULL NAME FIELD */}
               <div>
                 <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">
-                  Full Name
+                  Full Name (Locked)
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-3 w-4 h-4 text-zinc-400" />
+                  <Lock className="absolute left-3 top-3 w-4 h-4 text-zinc-400" />
                   <input
                     type="text"
+                    disabled
                     value={formData.fullName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, fullName: e.target.value })
-                    }
-                    className="w-full bg-zinc-50 dark:bg-zinc-800 pl-10 p-3 rounded-xl border border-zinc-200 dark:border-zinc-700 outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="w-full bg-zinc-100 dark:bg-zinc-950 pl-10 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-500 cursor-not-allowed"
                   />
                 </div>
               </div>
 
+              {/* Editable Fields */}
               <div>
                 <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">
                   Role
@@ -91,7 +91,7 @@ export default function EditProfileModal({
                     onChange={(e) =>
                       setFormData({ ...formData, role: e.target.value })
                     }
-                    className="w-full bg-zinc-50 dark:bg-zinc-800 pl-10 p-3 rounded-xl border border-zinc-200 dark:border-zinc-700 outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="w-full bg-zinc-50 dark:bg-zinc-800 pl-10 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 outline-none focus:ring-2 focus:ring-zinc-900"
                   />
                 </div>
               </div>
@@ -107,7 +107,7 @@ export default function EditProfileModal({
                     onChange={(e) =>
                       setFormData({ ...formData, bio: e.target.value })
                     }
-                    className="w-full bg-zinc-50 dark:bg-zinc-800 pl-10 p-3 rounded-xl border border-zinc-200 dark:border-zinc-700 outline-none focus:ring-2 focus:ring-zinc-900 h-24 resize-none"
+                    className="w-full bg-zinc-50 dark:bg-zinc-800 pl-10 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 outline-none focus:ring-2 focus:ring-zinc-900 h-24 resize-none"
                   />
                 </div>
               </div>
