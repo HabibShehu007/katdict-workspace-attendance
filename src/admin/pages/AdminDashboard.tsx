@@ -1,8 +1,11 @@
 import AdminDashboardLayout from "../layouts/AdminDashboardLayout";
-import AdminStatCards from "../components/dashboard_components/AdminStatCards"; // Adjust path as needed
+import AdminStatCards from "../components/dashboard_components/AdminStatCards";
+import AdminStatSkeleton from "../components/dashboard_components/AdminStatSkeleton"; // New
+import { useAdminDashboard } from "../hooks/useAdminDashboard";
 
 export default function AdminDashboard() {
-  // Get current date details
+  const { totalUsers, presentUsers, activeLogs, loading } = useAdminDashboard();
+
   const today = new Date();
   const dayName = today.toLocaleDateString("en-US", { weekday: "long" });
   const formattedDate = today.toLocaleDateString("en-US", {
@@ -14,37 +17,26 @@ export default function AdminDashboard() {
   return (
     <AdminDashboardLayout>
       <div className="space-y-8">
-        {/* Header */}
         <div className="border-b border-zinc-200 dark:border-zinc-800 pb-6">
           <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
             Admin Dashboard
           </h1>
-          <p className="text-zinc-500 mt-2">
-            System overview and administrative controls.
-          </p>
         </div>
 
-        {/* Integrated Stat Cards */}
-        <AdminStatCards
-          dayName={dayName}
-          formattedDate={formattedDate}
-          totalUsers={128} // Replace with your API state
-          presentUsers={45} // Replace with your API state
-          activeLogs={38} // Replace with your API state
-        />
+        {/* Conditional rendering for smoother transition */}
+        {loading ? (
+          <AdminStatSkeleton />
+        ) : (
+          <AdminStatCards
+            dayName={dayName}
+            formattedDate={formattedDate}
+            totalUsers={totalUsers}
+            presentUsers={presentUsers}
+            activeLogs={activeLogs}
+          />
+        )}
 
-        {/* System Status */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-8 rounded-2xl transition-colors">
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-4">
-            System Status
-          </h2>
-          <p className="text-emerald-600 dark:text-emerald-500 font-mono">
-            {">"} Gateway: OPERATIONAL
-          </p>
-          <p className="text-zinc-500 dark:text-zinc-400 font-mono">
-            {">"} Authentication Engine: ONLINE
-          </p>
-        </div>
+        {/* System Status... */}
       </div>
     </AdminDashboardLayout>
   );
