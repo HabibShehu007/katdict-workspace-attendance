@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, FileEdit, Plus, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -14,21 +14,38 @@ import WorkspaceSkeleton from "../workspacelog_components/WorkspaceSkeleton";
 
 // Import your central synchronizer master hook
 import { useWorkspaceLog } from "../../hooks/WorkSpaceLog-hooks/useWorkspaceLog";
-import { useAuth } from "../../context/AuthContext"; // Import context to access master switches
+import { useAuth } from "../../context/AuthContext";
 
 interface WorkspaceLogsProps {
   dayName: string;
   hasAttendance: boolean;
 }
 
+// Global Loading Overlay Sub-component
+const LoadingOverlay = ({ text }: { text: string }) => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/60 backdrop-blur-sm"
+  >
+    <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-4 border border-zinc-200 dark:border-zinc-800">
+      <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      <p className="text-sm font-black text-zinc-900 dark:text-white tracking-wide uppercase">
+        {text}
+      </p>
+    </div>
+  </motion.div>
+);
+
 export default function WorkspaceLogs({
   dayName,
   hasAttendance,
 }: WorkspaceLogsProps) {
-  const { BYPASS_TIME_GUARD } = useAuth(); // Read master time switch directly from the centralized brain
+  const { BYPASS_TIME_GUARD } = useAuth();
 
   const {
-    isAttendanceLoading, // Picked up directly from our custom hook expansion
+    isAttendanceLoading,
     logData,
     isSubmitting,
     error,
@@ -39,9 +56,8 @@ export default function WorkspaceLogs({
   const [showOptionsModal, setShowOptionsModal] = useState(false);
   const [showLogFormModal, setShowLogFormModal] = useState(false);
 
-  // Client time boundary checker helper (Respects developer bypass rule)
   const isPastNoonCutoff = () => {
-    if (BYPASS_TIME_GUARD) return false; // If bypass engine is running, it's NEVER locked or closed
+    if (BYPASS_TIME_GUARD) return false;
     return new Date().getHours() >= 12;
   };
 
@@ -76,16 +92,27 @@ export default function WorkspaceLogs({
 
   const isClosed = isPastNoonCutoff();
 
-  // 🛠️ THE UX INJECTION: If the centralized brain is running background async checks, intercept with a loader!
   if (isAttendanceLoading) {
     return <WorkspaceSkeleton />;
   }
 
-  // Typecast logData to a dynamic format safely for our compatibility bridge lookups
   const rawLog = logData as any;
 
   return (
     <>
+      {/* Loading Overlay Integration */}
+      <AnimatePresence>
+        {isSubmitting && (
+          <LoadingOverlay
+            text={
+              hasAttendance
+                ? `Updating logs for ${dayName}...`
+                : `Marking attendance for ${dayName}...`
+            }
+          />
+        )}
+      </AnimatePresence>
+
       <div className="w-full space-y-6">
         {error && (
           <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl text-left">
@@ -100,7 +127,6 @@ export default function WorkspaceLogs({
           />
         ) : (
           <div className="w-full space-y-6">
-            {/* Status Header Notification Banner */}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -148,11 +174,9 @@ export default function WorkspaceLogs({
               )}
             </motion.div>
 
-            {/* Dynamic Inner Panel Content Node */}
             {logData ? (
               <WorkspaceActiveLogCard
                 onModifyClick={handleOpenLogModalClick}
-                // Safe lookup evaluation blocks compilation error codes while linking production metrics
                 logData={{
                   title: rawLog?.project_title || rawLog?.title || "",
                   desc: rawLog?.project_description || rawLog?.desc || "",
@@ -209,10 +233,11 @@ export default function WorkspaceLogs({
       />
 
       <WorkspaceLogModal
+        key={showLogFormModal ? "open" : "closed"}
         isOpen={showLogFormModal}
         isSubmitting={isSubmitting}
         onClose={() => setShowLogFormModal(false)}
-        initialData={rawLog} // Pass rawLog (the database object)
+        initialData={logData ? rawLog : undefined}
         onSubmit={async (data) => {
           const success = await submitWorkLog(data);
           if (success) setShowLogFormModal(false);

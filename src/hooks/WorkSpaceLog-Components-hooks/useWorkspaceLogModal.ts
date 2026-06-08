@@ -28,15 +28,18 @@ export function useWorkspaceLogModal({
   const [liveUrl, setLiveUrl] = useState("");
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
-  // THE PREFILL ENGINE: Preserved, but corrected to recognize actual data
+  // THE PREFILL ENGINE: Now mapped to the keys actually present in your object
   useEffect(() => {
     if (isOpen) {
-      // FIX: Check if initialData exists. We removed the !initialData.is_log_empty
-      // check because it was forcing a reset when data WAS actually present.
-      if (initialData && Object.keys(initialData).length > 0) {
-        setTitle(initialData.project_title || "");
-        setDesc(initialData.project_description || "");
-        setSelectedStacks(initialData.tech_stacks || []);
+      if (
+        initialData &&
+        typeof initialData === "object" &&
+        Object.keys(initialData).length > 0
+      ) {
+        // Use the exact keys shown in your console log: title, desc, stacks, etc.
+        setTitle(initialData.title || "");
+        setDesc(initialData.desc || "");
+        setSelectedStacks(initialData.stacks || []);
 
         const defaultAvailableStacks = [
           "React",
@@ -48,16 +51,16 @@ export function useWorkspaceLogModal({
           "Supabase",
         ];
 
-        const extractedCustom = (initialData.tech_stacks || []).filter(
+        const extractedCustom = (initialData.stacks || []).filter(
           (stack: string) => !defaultAvailableStacks.includes(stack),
         );
         setCustomStacks(extractedCustom);
 
-        setUiUrl(initialData.ui_reference_url || "");
-        setGithubUrl(initialData.github_url || "");
-        setLiveUrl(initialData.live_preview_url || "");
+        setUiUrl(initialData.uiUrl || "");
+        setGithubUrl(initialData.githubUrl || "");
+        setLiveUrl(initialData.liveUrl || "");
       } else {
-        // Clear fresh for new entries
+        // Reset state
         setTitle("");
         setDesc("");
         setSelectedStacks([]);
@@ -68,7 +71,6 @@ export function useWorkspaceLogModal({
       }
     }
   }, [isOpen, initialData]);
-
   // Dynamic placeholder switcher: Preserved
   useEffect(() => {
     if (!isOpen) return;

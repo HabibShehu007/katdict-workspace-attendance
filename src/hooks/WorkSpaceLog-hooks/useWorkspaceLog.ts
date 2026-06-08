@@ -27,8 +27,9 @@ export function useWorkspaceLog(dayName: string) {
   // 1. Save Attendance Only
   const saveAttendanceOnly = useCallback(async () => {
     if (!user) return false;
+
     setIsSubmitting(true);
-    setError(null);
+    setError(null); // Clear previous errors
 
     try {
       const now = new Date();
@@ -50,7 +51,6 @@ export function useWorkspaceLog(dayName: string) {
 
       if (!response.ok) throw new Error("Server rejected attendance.");
 
-      // Sync status and force-refresh history engine
       await refreshAttendance();
       await fetchHistory("current_week", undefined, undefined, true);
 
@@ -61,10 +61,11 @@ export function useWorkspaceLog(dayName: string) {
       }
       return true;
     } catch (err: any) {
+      setError(err.message || "Attendance failed.");
       toast.error(err.message || "Attendance failed.");
       return false;
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false); // Overlay will disappear here
     }
   }, [user, dayName, refreshAttendance, fetchHistory, BYPASS_TIME_GUARD]);
 
@@ -72,7 +73,9 @@ export function useWorkspaceLog(dayName: string) {
   const submitWorkLog = useCallback(
     async (data: SubmittedLog) => {
       if (!user) return false;
+
       setIsSubmitting(true);
+      setError(null); // Clear previous errors
 
       try {
         const now = new Date();
@@ -95,17 +98,17 @@ export function useWorkspaceLog(dayName: string) {
 
         if (!response.ok) throw new Error("Server rejected log write.");
 
-        // Sync status and force-refresh history engine
         await refreshAttendance();
         await fetchHistory("current_week", undefined, undefined, true);
 
         toast.success(`Progress logs for ${dayName} saved successfully!`);
         return true;
       } catch (err: any) {
+        setError(err.message || "Failed to submit logs.");
         toast.error(err.message || "Failed to submit logs.");
         return false;
       } finally {
-        setIsSubmitting(false);
+        setIsSubmitting(false); // Overlay will disappear here
       }
     },
     [user, dayName, refreshAttendance, fetchHistory, BYPASS_TIME_GUARD],

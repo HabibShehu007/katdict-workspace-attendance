@@ -37,7 +37,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     `;
 
     // 2. Update Streak Logic
-    // We get the current user stats
     const userStats =
       await sql`SELECT current_streak, last_activity_date FROM users WHERE id = ${uid}`;
     const lastDate = userStats[0]?.last_activity_date;
@@ -46,17 +45,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const today = new Date(logDate);
     const last = lastDate ? new Date(lastDate) : null;
 
-    // Calculate difference in days
-    const diffTime = last ? today.getTime() - last.getTime() : 0;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
     let newStreak = 1;
-    if (diffDays === 1) {
-      newStreak = currentStreak + 1; // Consecutive day
-    } else if (diffDays === 0) {
-      newStreak = currentStreak; // Already submitted today
+
+    if (last) {
+      const diffTime = today.getTime() - last.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      const todayDay = today.getDay(); // 1 = Monday
+      const lastDay = last.getDay(); // 5 = Friday
+
+      // Check if it's Monday and the previous log was Friday
+      const isMondayAfterFriday =
+        todayDay === 1 && lastDay === 5 && diffDays === 3;
+
+      if (diffDays === 1 || isMondayAfterFriday) {
+        newStreak = currentStreak + 1;
+      } else if (diffDays === 0) {
+        newStreak = currentStreak; // Keep existing streak
+      } else {
+        newStreak = 1; // Streak broken
+      }
     } else {
-      newStreak = 1; // Streak broken
+      newStreak = 1; // First ever log
     }
 
     // 3. Update User Table

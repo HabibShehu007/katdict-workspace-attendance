@@ -6,7 +6,7 @@ import type {
 } from "../../types/auth.types";
 
 export const BYPASS_LOCATION_GUARD = true;
-export const BYPASS_TIME_GUARD = false;
+export const BYPASS_TIME_GUARD = true;
 
 export function useAuthLogic() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -28,9 +28,7 @@ export function useAuthLogic() {
       const response = await fetch(`/api/workspace/status?userId=${userId}`);
       if (response.ok) {
         const { data } = await response.json();
-
         if (data) {
-          // 1. Always update streak data from the DB response
           setUser((prev) =>
             prev
               ? {
@@ -40,10 +38,7 @@ export function useAuthLogic() {
                 }
               : null,
           );
-
-          // 2. Use the explicit attendance_exists flag from the API
           const exists = !!data.attendance_exists;
-
           setAttendance({
             hasAttendance: exists,
             isLogComplete: exists ? !data.is_log_empty : false,
@@ -52,7 +47,6 @@ export function useAuthLogic() {
           return true;
         }
       }
-      // Reset state if no data
       setAttendance({ hasAttendance: false, isLogComplete: false, data: null });
       return false;
     } catch (err) {
@@ -70,7 +64,10 @@ export function useAuthLogic() {
       endDate?: string,
       force = false,
     ) => {
-      if (historyLogs.length > 0 && !force) return;
+      // FIX: Only stop if it's the default range AND we already have data.
+      // If range is 'custom', we bypass the guard to allow new queries.
+      if (range === "current_week" && historyLogs.length > 0 && !force) return;
+
       const storedUser = localStorage.getItem("katdict_user");
       let currentUserId =
         user?.id || (storedUser ? JSON.parse(storedUser).id : null);
@@ -81,10 +78,13 @@ export function useAuthLogic() {
         let url = `/api/workspace/history?userId=${currentUserId}&range=${range}`;
         if (range === "custom" && startDate && endDate)
           url += `&startDate=${startDate}&endDate=${endDate}`;
+
         const response = await fetch(url);
         if (response.ok) {
           const result = await response.json();
-          if (result.success) setHistoryLogs(result.data);
+          if (result.success) {
+            setHistoryLogs(result.data);
+          }
         }
       } catch (err) {
         console.error("History engine tracking fetch failed:", err);
@@ -92,7 +92,8 @@ export function useAuthLogic() {
         setIsHistoryLoading(false);
       }
     },
-    [user?.id, historyLogs.length],
+    // Removed historyLogs.length to prevent unnecessary re-creations
+    [user?.id],
   );
 
   useEffect(() => {
