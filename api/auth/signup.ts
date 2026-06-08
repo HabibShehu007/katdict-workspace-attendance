@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { neon } from "@neondatabase/serverless";
 import bcrypt from "bcryptjs";
 import axios from "axios";
-import { getWelcomeEmail } from "./welcomeTemplate"; // Importing our clean template
+import { getWelcomeEmail } from "./welcomeTemplate.js"; // Importing our clean template
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // 1. Enforce strict POST protocol
