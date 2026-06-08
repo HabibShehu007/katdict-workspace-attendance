@@ -24,7 +24,14 @@ export default function Login() {
     isLoading,
     handleLoginSubmit,
   } = useLogin({
-    onSuccess: () => navigate("/dashboard"), // Redirect to dashboard room upon clear log
+    // Receive the user object here
+    onSuccess: (user) => {
+      if (user?.role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/dashboard");
+      }
+    },
   });
 
   const [showPassword, setShowPassword] = useState(false);

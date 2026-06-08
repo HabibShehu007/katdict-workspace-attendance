@@ -55,6 +55,7 @@ export interface AuthContextType {
   isAttendanceLoading: boolean;
   refreshAttendance: () => Promise<boolean>;
   BYPASS_TIME_GUARD: boolean;
+  BYPASS_LOCATION_GUARD: boolean;
 
   // History Tracking
   historyLogs: WorkspaceHistoryItem[];

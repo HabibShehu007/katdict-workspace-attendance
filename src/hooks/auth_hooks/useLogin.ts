@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { useAuth } from "../../context/AuthContext"; // Import hook hook
+import { useAuth } from "../../context/AuthContext";
+import type { UserProfile } from "../../types/auth.types"; // Ensure UserProfile is imported
 
 interface UseLoginArgs {
-  onSuccess: () => void;
+  onSuccess: (user: UserProfile) => void; // Updated: Now accepts the user object
 }
 
 export function useLogin({ onSuccess }: UseLoginArgs) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { loginSession } = useAuth(); // Destructure initialization payload handler
+  const { loginSession } = useAuth();
 
   const captureLocation = (): Promise<GeolocationPosition> => {
     return new Promise((resolve, reject) => {
@@ -102,7 +103,9 @@ export function useLogin({ onSuccess }: UseLoginArgs) {
 
       setEmail("");
       setPassword("");
-      onSuccess();
+
+      // PASS THE USER DATA TO THE SUCCESS CALLBACK
+      onSuccess(data.user);
     } catch (err: any) {
       toast.error(err.message || "Login failed. Check your connection.", {
         id: toastId,

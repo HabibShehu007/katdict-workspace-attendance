@@ -22,6 +22,9 @@ export function useAuthLogic() {
   const [historyLogs, setHistoryLogs] = useState<WorkspaceHistoryItem[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState<boolean>(false);
 
+  // Helper for UI components
+  const isAdmin = user?.role === "admin";
+
   const refreshAttendance = useCallback(async (userId: string) => {
     setIsAttendanceLoading(true);
     try {
@@ -64,10 +67,7 @@ export function useAuthLogic() {
       endDate?: string,
       force = false,
     ) => {
-      // FIX: Only stop if it's the default range AND we already have data.
-      // If range is 'custom', we bypass the guard to allow new queries.
       if (range === "current_week" && historyLogs.length > 0 && !force) return;
-
       const storedUser = localStorage.getItem("katdict_user");
       let currentUserId =
         user?.id || (storedUser ? JSON.parse(storedUser).id : null);
@@ -78,13 +78,10 @@ export function useAuthLogic() {
         let url = `/api/workspace/history?userId=${currentUserId}&range=${range}`;
         if (range === "custom" && startDate && endDate)
           url += `&startDate=${startDate}&endDate=${endDate}`;
-
         const response = await fetch(url);
         if (response.ok) {
           const result = await response.json();
-          if (result.success) {
-            setHistoryLogs(result.data);
-          }
+          if (result.success) setHistoryLogs(result.data);
         }
       } catch (err) {
         console.error("History engine tracking fetch failed:", err);
@@ -92,7 +89,6 @@ export function useAuthLogic() {
         setIsHistoryLoading(false);
       }
     },
-    // Removed historyLogs.length to prevent unnecessary re-creations
     [user?.id],
   );
 
@@ -103,15 +99,22 @@ export function useAuthLogic() {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
       refreshAttendance(parsedUser.id);
+
+      // Apply Admin override logic on initial load
+      if (parsedUser.role === "admin") {
+        setIsWithinWorkspace(true);
+      } else {
+        setIsWithinWorkspace(BYPASS_LOCATION_GUARD || storedGeo === "true");
+      }
     }
-    if (BYPASS_LOCATION_GUARD) setIsWithinWorkspace(true);
-    else if (storedGeo) setIsWithinWorkspace(storedGeo === "true");
     setIsLoading(false);
   }, [refreshAttendance]);
 
   const loginSession = (userData: UserProfile, isWithin: boolean) => {
     setUser(userData);
-    const finalLocationStatus = BYPASS_LOCATION_GUARD ? true : isWithin;
+    // Force true for Admins, otherwise use bypass or actual location
+    const finalLocationStatus =
+      userData.role === "admin" ? true : BYPASS_LOCATION_GUARD || isWithin;
     setIsWithinWorkspace(finalLocationStatus);
     localStorage.setItem("katdict_user", JSON.stringify(userData));
     localStorage.setItem("katdict_geo_status", String(finalLocationStatus));
@@ -129,6 +132,7 @@ export function useAuthLogic() {
 
   return {
     user,
+    isAdmin,
     isWithinWorkspace,
     isLoading,
     attendance,
