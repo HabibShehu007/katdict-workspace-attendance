@@ -7,6 +7,7 @@ import { TechStackChart } from "../components/performance/TechStackChart";
 import { HistoryTable } from "../components/performance/HistoryTable";
 import { PerformanceToggler } from "../components/performance/PerformanceToggler";
 import { PerformanceSkeleton } from "../components/performance/PerformanceSkeleton";
+import { PerformanceEmptyState } from "../components/performance/EmptyState"; // Assuming this path
 import { Clock, Zap, Target, Award } from "lucide-react";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
 
@@ -14,6 +15,9 @@ export default function Performance() {
   const { historyLogs, isHistoryLoading } = useWorkspaceHistory();
   const stats = usePerformanceStats(historyLogs);
   const [activeView, setActiveView] = useState<"weekly" | string>("weekly");
+
+  // Determine if we have any data to show
+  const hasData = historyLogs && historyLogs.length > 0;
 
   // Find the specific log for the selected day
   const dailyLog = useMemo(() => {
@@ -68,11 +72,25 @@ export default function Performance() {
     };
   }, [activeView, stats, dailyLog]);
 
-  // Loading state using your high-fidelity Skeleton component
-  if (isHistoryLoading || !stats) {
+  // Loading state
+  if (isHistoryLoading) {
     return (
       <DashboardLayout>
         <PerformanceSkeleton />
+      </DashboardLayout>
+    );
+  }
+
+  // Empty state for new users
+  if (!hasData) {
+    return (
+      <DashboardLayout>
+        <div className="max-w-4xl mx-auto pt-10 px-6">
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">
+            Performance
+          </h1>
+          <PerformanceEmptyState />
+        </div>
       </DashboardLayout>
     );
   }
@@ -87,7 +105,7 @@ export default function Performance() {
           <PerformanceToggler
             activeView={activeView}
             onToggle={setActiveView}
-            isLocked={stats.isLocked}
+            isLocked={stats?.isLocked ?? false}
           />
         </div>
 
@@ -118,7 +136,9 @@ export default function Performance() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <PerformanceGauge
               value={data.overallGrade}
-              isLocked={activeView === "weekly" ? stats.isLocked : false}
+              isLocked={
+                activeView === "weekly" ? (stats?.isLocked ?? false) : false
+              }
             />
             <TechStackChart data={techData} />
           </div>
