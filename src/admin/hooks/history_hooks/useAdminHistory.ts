@@ -32,8 +32,8 @@ export function useAdminHistory(
     },
     // Keep the old logs on screen while the new ones load, preventing empty-state flashes
     placeholderData: keepPreviousData,
-    // Refresh every 30 seconds
-    refetchInterval: 30000,
+    // Refresh every 6 seconds
+    refetchInterval: 6000,
     // Keep data fresh in cache for 1 minute
     staleTime: 60000,
   });

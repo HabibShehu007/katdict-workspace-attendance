@@ -23,7 +23,7 @@ export function useAdminDashboard() {
       return response.json();
     },
     // Polling every 15 seconds to keep the dashboard live
-    refetchInterval: 15000,
+    refetchInterval: 5000,
     refetchOnWindowFocus: true,
     staleTime: 5000,
   });

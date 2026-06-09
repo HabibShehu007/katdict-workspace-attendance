@@ -9,11 +9,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const sql = neon(process.env.DATABASE_URL!);
 
   try {
+    // Fetching all necessary profile data, excluding password_hash
     const users = await sql`
-      SELECT id, full_name, email, created_at 
+      SELECT 
+        id, full_name, email, created_at, 
+        current_streak, highest_streak, last_activity_date, bio 
       FROM users 
+      WHERE role != 'admin' 
       ORDER BY full_name ASC
     `;
+
     return res.status(200).json({ success: true, users });
   } catch (error) {
     console.error("Fetch Users Error:", error);
