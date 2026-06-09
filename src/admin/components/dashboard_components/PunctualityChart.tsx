@@ -12,7 +12,6 @@ export default function PunctualityChart({ total, present }: Props) {
     { name: "Absent", value: Math.max(0, total - present) },
   ];
 
-  // Emerald for present, Amber for absent (more urgent than dull grey)
   const COLORS = ["#10b981", "#f59e0b"];
 
   return (
@@ -27,28 +26,12 @@ export default function PunctualityChart({ total, present }: Props) {
             dataKey="value"
             stroke="none"
           >
-            {data.map((entry, index) => (
+            {data.map((_, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index]} />
             ))}
           </Pie>
           <Tooltip
             cursor={{ fill: "transparent" }}
-            contentStyle={{
-              borderRadius: "12px",
-              border: "none",
-              // Dynamically set background based on theme/context
-              backgroundColor: "var(--tooltip-bg, #ffffff)",
-              boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
-              padding: "8px 12px",
-            }}
-            itemStyle={{
-              fontWeight: "bold",
-              textTransform: "uppercase",
-              fontSize: "11px",
-              // Dynamic color logic based on the slice color
-              color: "var(--tooltip-text-color)",
-            }}
-            // Use custom content to handle the dynamic coloring
             content={({ active, payload }) => {
               if (active && payload && payload.length) {
                 const color =
