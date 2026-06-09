@@ -2,7 +2,7 @@ import AdminDashboardLayout from "../layouts/AdminDashboardLayout";
 import AdminStatCards from "../components/dashboard_components/AdminStatCards";
 import AdminStatSkeleton from "../components/dashboard_components/AdminStatSkeleton";
 import RecentLogs from "../components/dashboard_components/RecentLogs"; // Assuming this is where you'll put it
-import { useAdminDashboard } from "../hooks/useAdminDashboard";
+import { useAdminDashboard } from "../hooks/dashbaord_hooks/useAdminDashboard";
 
 export default function AdminDashboard() {
   const { data, isLoading } = useAdminDashboard();

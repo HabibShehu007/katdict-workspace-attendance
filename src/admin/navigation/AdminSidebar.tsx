@@ -27,7 +27,7 @@ export default function AdminSidebar({
       icon: LayoutDashboard,
     },
     { name: "User Management", path: "/admin/users", icon: Users },
-    { name: "System Logs", path: "/admin/logs", icon: FileClock },
+    { name: "System Logs", path: "/admin/history", icon: FileClock },
     { name: "System Config", path: "/admin/settings", icon: Settings },
   ];
 

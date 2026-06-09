@@ -18,6 +18,7 @@ import ProfilePage from "./pages/Profile";
 
 // Admin Pages
 import AdminDashboard from "./admin/pages/AdminDashboard";
+import AdminHistory from "./admin/pages/AdminHistory";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,6 +63,7 @@ function App() {
 
               {/* Admin Routes */}
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/history" element={<AdminHistory />} />
               {/* Fallback to onboarding if route doesn't exist */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

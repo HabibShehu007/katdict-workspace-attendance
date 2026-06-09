@@ -1,4 +1,5 @@
 import { ArrowRight, Clock } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface RecentLog {
   id: number;
@@ -26,9 +27,12 @@ export default function RecentLogs({ logs }: RecentLogsProps) {
         <h3 className="font-bold text-lg text-zinc-900 dark:text-white">
           Recent Logs
         </h3>
-        <button className="flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors">
+        <Link
+          to="/admin/history"
+          className="flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
+        >
           View All <ArrowRight className="w-3 h-3" />
-        </button>
+        </Link>
       </div>
 
       <div className="space-y-2">
