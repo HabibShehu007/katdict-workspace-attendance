@@ -41,7 +41,7 @@ export default function AdminSidebar({
             KATDICT
           </h1>
           <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-widest">
-            Administrator Gateway
+            Workspace Admin Panel
           </p>
         </div>
 

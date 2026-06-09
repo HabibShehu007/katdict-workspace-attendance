@@ -15,7 +15,7 @@ export default function AdminDashboardLayout({
 
   return (
     // Updated: Uses bg-white for light and bg-zinc-950 for dark
-    <div className="min-h-screen w-full flex flex-col md:flex-row bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-400 ease-in-out">
+    <div className="min-h-screen w-full flex flex-col md:flex-row bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 transition-colors duration-400 ease-in-out">
       {/* Desktop Persistent Admin Sidebar */}
       {/* Updated: Border color adapts to theme */}
       <div className="hidden md:block h-screen sticky top-0 shrink-0 border-r border-zinc-200 dark:border-zinc-800">
