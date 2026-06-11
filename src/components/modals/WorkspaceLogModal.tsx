@@ -12,9 +12,8 @@ import { useTechStackSelector } from "../../hooks/WorkSpaceLog-Components-hooks/
 import type { TabType } from "../../hooks/WorkSpaceLog-Components-hooks/useTechStackSelector";
 
 interface TechStackSelectorProps {
-  // Use the strict union to ensure this component only handles these two cases
   userRole: "web_development" | "ui_ux_design";
-  selectedStacks: string[];
+  selectedStacks: string[]; // This should be initialized as [] in the parent
   onToggleStack: (stack: string) => void;
   onAddCustomStack: (stack: string) => void;
   customStacks: string[];
@@ -22,10 +21,10 @@ interface TechStackSelectorProps {
 
 export default function TechStackSelector({
   userRole,
-  selectedStacks,
+  selectedStacks = [], // Added default fallback here
   onToggleStack,
   onAddCustomStack,
-  customStacks,
+  customStacks = [], // Added default fallback here
 }: TechStackSelectorProps) {
   const {
     activeTab,
@@ -42,6 +41,11 @@ export default function TechStackSelector({
       handleCustomSubmit(e as any);
     }
   };
+
+  // Ensure we have a safe array to map over
+  const displayOptions = getDisplayOptions() || [];
+  // Ensure we have a safe array for checking selection
+  const safeSelected = Array.isArray(selectedStacks) ? selectedStacks : [];
 
   return (
     <div className="space-y-3">
@@ -68,7 +72,6 @@ export default function TechStackSelector({
                   : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
               }`}
             >
-              {/* Icons updated to include Design specific tabs */}
               {tab === "frontend" && <Monitor className="w-3 h-3" />}
               {tab === "backend" && <Server className="w-3 h-3" />}
               {tab === "fullstack" && <Terminal className="w-3 h-3" />}
@@ -88,8 +91,8 @@ export default function TechStackSelector({
           transition={{ type: "spring", stiffness: 400, damping: 30 }}
           className="flex flex-wrap gap-1.5"
         >
-          {getDisplayOptions().map((stack) => {
-            const isSelected = selectedStacks.includes(stack);
+          {displayOptions.map((stack) => {
+            const isSelected = safeSelected.includes(stack);
             return (
               <button
                 type="button"

@@ -1,8 +1,7 @@
 import { useState, useCallback } from "react";
 import { DEV_STACKS, DESIGN_STACKS } from "../../constants/techStacks";
-import type { UserRole } from "../../types/auth.types"; // Import your UserRole type
+import type { UserRole } from "../../types/auth.types";
 
-// Updated tabs to handle both developer roles and design roles
 export type TabType =
   | "frontend"
   | "backend"
@@ -11,21 +10,23 @@ export type TabType =
   | "categories";
 
 interface UseTechStackSelectorProps {
-  userRole: UserRole; // Accept the role here
+  userRole: UserRole;
   customStacks: string[];
   onAddCustomStack: (stack: string) => void;
 }
 
 export function useTechStackSelector({
   userRole,
-  customStacks,
+  customStacks = [], // Default to empty array if undefined
   onAddCustomStack,
 }: UseTechStackSelectorProps) {
-  // Set default tab based on the user's role
   const [activeTab, setActiveTab] = useState<TabType>(
     userRole === "ui_ux_design" ? "tools" : "frontend",
   );
   const [customInput, setCustomInput] = useState("");
+
+  // Ensure we always have an array to work with to prevent .filter() errors
+  const safeCustomStacks = Array.isArray(customStacks) ? customStacks : [];
 
   const getDisplayOptions = useCallback(() => {
     // If designer, use Design constants
@@ -33,38 +34,40 @@ export function useTechStackSelector({
       const { tools, categories } = DESIGN_STACKS;
       switch (activeTab) {
         case "tools":
-          return [...tools, ...customStacks.filter((s) => !tools.includes(s))];
+          return [
+            ...tools,
+            ...safeCustomStacks.filter((s) => !tools.includes(s)),
+          ];
         case "categories":
           return [
             ...categories,
-            ...customStacks.filter((s) => !categories.includes(s)),
+            ...safeCustomStacks.filter((s) => !categories.includes(s)),
           ];
         default:
-          return [...tools, ...categories, ...customStacks];
+          return [...tools, ...categories, ...safeCustomStacks];
       }
     }
 
-    // Otherwise, default to Developer constants
+    // Developer constants
     const { frontend, backend } = DEV_STACKS;
     switch (activeTab) {
       case "frontend":
         return [
           ...frontend,
-          ...customStacks.filter((s) => !frontend.includes(s)),
+          ...safeCustomStacks.filter((s) => !frontend.includes(s)),
         ];
       case "backend":
         return [
           ...backend,
-          ...customStacks.filter((s) => !backend.includes(s)),
+          ...safeCustomStacks.filter((s) => !backend.includes(s)),
         ];
       case "fullstack":
-        return [...frontend, ...backend, ...customStacks];
+        return [...frontend, ...backend, ...safeCustomStacks];
       default:
         return [...frontend, ...backend];
     }
-  }, [activeTab, customStacks, userRole]);
+  }, [activeTab, safeCustomStacks, userRole]);
 
-  // ... (handleCustomSubmit remains the same)
   const handleCustomSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
