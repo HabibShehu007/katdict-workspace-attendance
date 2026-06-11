@@ -1,17 +1,17 @@
-import { RefreshCw } from "lucide-react"; // Import icon
-import { useQueryClient, useIsFetching } from "@tanstack/react-query"; // Import query hooks
+import { RefreshCw } from "lucide-react";
+import { useQueryClient, useIsFetching } from "@tanstack/react-query";
 import AdminDashboardLayout from "../layouts/AdminDashboardLayout";
 import AdminStatCards from "../components/dashboard_components/AdminStatCards";
 import AdminStatSkeleton from "../components/dashboard_components/AdminStatSkeleton";
 import RecentLogs from "../components/dashboard_components/RecentLogs";
 import PunctualityChart from "../components/dashboard_components/PunctualityChart";
 import ActivityStatusChart from "../components/dashboard_components/ActivityStatusChart";
-import { useAdminStats } from "../hooks/dashbaord_hooks/useAdminStats";
+import { useAdminDashboard } from "../hooks/dashbaord_hooks/useAdminDashboard"; // Updated import
 
 export default function AdminDashboard() {
   const queryClient = useQueryClient();
-  const isFetching = useIsFetching({ queryKey: ["adminStats"] }); // Check fetch state
-  const { data, isLoading } = useAdminStats();
+  const isFetching = useIsFetching({ queryKey: ["adminStats"] });
+  const { data, isLoading } = useAdminDashboard(); // Use the hook pointing to the consolidated API
 
   const today = new Date();
   const dayName = today.toLocaleDateString("en-US", { weekday: "long" });
@@ -21,8 +21,13 @@ export default function AdminDashboard() {
     year: "numeric",
   });
 
+  // Map API data to component expectations
+  const totalUsers = data?.total_users || 0;
+  const presentUsers = data?.present_users || 0;
+  const activeLogs = data?.active_logs || 0;
+
   const formattedLogs =
-    data?.recentLogs?.map((log) => ({
+    data?.recentLogs?.map((log: any) => ({
       ...log,
       id: typeof log.id === "string" ? parseInt(log.id, 10) : log.id,
     })) || [];
@@ -50,7 +55,6 @@ export default function AdminDashboard() {
             </p>
           </div>
 
-          {/* Refresh Button */}
           <button
             onClick={() =>
               queryClient.invalidateQueries({ queryKey: ["adminStats"] })
@@ -68,9 +72,9 @@ export default function AdminDashboard() {
         <AdminStatCards
           dayName={dayName}
           formattedDate={formattedDate}
-          totalUsers={data?.totalUsers || 0}
-          presentUsers={data?.presentUsers || 0}
-          activeLogs={data?.activeLogs || 0}
+          totalUsers={totalUsers}
+          presentUsers={presentUsers}
+          activeLogs={activeLogs}
         />
 
         <div className="w-full">
@@ -82,10 +86,7 @@ export default function AdminDashboard() {
             <h3 className="text-sm font-bold text-zinc-900 dark:text-white mb-4 uppercase tracking-wider">
               Daily Punctuality Rate
             </h3>
-            <PunctualityChart
-              total={data?.totalUsers || 0}
-              present={data?.presentUsers || 0}
-            />
+            <PunctualityChart total={totalUsers} present={presentUsers} />
           </div>
 
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl shadow-sm">
@@ -93,8 +94,8 @@ export default function AdminDashboard() {
               Log Submission Rate
             </h3>
             <ActivityStatusChart
-              totalUsers={data?.presentUsers || 0}
-              activeUsers={data?.activeLogs || 0}
+              totalUsers={presentUsers}
+              activeUsers={activeLogs}
             />
           </div>
         </div>

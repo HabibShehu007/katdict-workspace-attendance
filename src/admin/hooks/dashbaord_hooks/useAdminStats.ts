@@ -1,26 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 
-interface AdminStats {
-  totalUsers: number;
-  presentUsers: number;
-  activeLogs: number;
-  recentLogs: Array<{
-    id: string;
-    project_title: string;
-    arrival_time: string;
-    user_name: string;
-  }>;
+interface AdminLogItem {
+  id: number;
+  project_title: string;
+  arrival_time: string;
+  user_name: string;
+  user_email: string;
+  // Add other fields returned by your "all" query as needed
 }
 
 export function useAdminStats() {
-  return useQuery<AdminStats>({
-    queryKey: ["adminStats"],
+  return useQuery<AdminLogItem[]>({
+    queryKey: ["adminLogs"], // Changed key to reflect it's for the logs list
     queryFn: async () => {
-      const response = await fetch("/api/admin/get-stats");
-      if (!response.ok) throw new Error("Failed to fetch dashboard stats");
+      // Pointing to the consolidated API with action=all
+      const response = await fetch("/api/admin/logs?action=all");
+      if (!response.ok) throw new Error("Failed to fetch logs");
       return response.json();
     },
     refetchInterval: 30000,
-    refetchOnWindowFocus: true, // Refreshes when the user returns to the tab
+    refetchOnWindowFocus: true,
   });
 }

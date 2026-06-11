@@ -8,9 +8,9 @@ interface AdminLog {
 }
 
 interface AdminDashboardData {
-  totalUsers: number;
-  presentUsers: number;
-  activeLogs: number;
+  total_users: number; // Matches the database keys in your merged API
+  present_users: number;
+  active_logs: number;
   recentLogs: AdminLog[];
 }
 
@@ -18,11 +18,11 @@ export function useAdminDashboard() {
   return useQuery<AdminDashboardData>({
     queryKey: ["adminStats"],
     queryFn: async () => {
-      const response = await fetch("/api/admin/get-stats");
+      // Pointing to the consolidated API with action=stats
+      const response = await fetch("/api/admin/logs?action=stats");
       if (!response.ok) throw new Error("Failed to fetch admin stats");
       return response.json();
     },
-    // Polling every 15 seconds to keep the dashboard live
     refetchInterval: 5000,
     refetchOnWindowFocus: true,
     staleTime: 5000,
