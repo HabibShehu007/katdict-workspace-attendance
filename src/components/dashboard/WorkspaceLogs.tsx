@@ -3,16 +3,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, FileEdit, Plus, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
-// Import your custom sub-components
+// Components
 import WorkspaceEmptyState from "../workspacelog_components/WorkspaceEmptyState";
 import WorkspaceActiveLogCard from "../workspacelog_components/WorkspaceActiveLogCard";
 import AttendanceOptionModal from "../modals/AttendanceOptionModal";
 import WorkspaceLogModal from "../modals/WorkspaceLogModal";
-
-// Import your pulsing Skeleton Loader
 import WorkspaceSkeleton from "../workspacelog_components/WorkspaceSkeleton";
 
-// Import your central synchronizer master hook
+// Hooks
 import { useWorkspaceLog } from "../../hooks/WorkSpaceLog-hooks/useWorkspaceLog";
 import { useAuth } from "../../context/AuthContext";
 
@@ -21,13 +19,12 @@ interface WorkspaceLogsProps {
   hasAttendance: boolean;
 }
 
-// Global Loading Overlay Sub-component
 const LoadingOverlay = ({ text }: { text: string }) => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
-    className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/60 backdrop-blur-sm"
+    className="fixed inset-0 z-100 flex items-center justify-center bg-zinc-950/60 backdrop-blur-sm"
   >
     <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-4 border border-zinc-200 dark:border-zinc-800">
       <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
@@ -92,15 +89,13 @@ export default function WorkspaceLogs({
 
   const isClosed = isPastNoonCutoff();
 
-  if (isAttendanceLoading) {
-    return <WorkspaceSkeleton />;
-  }
+  if (isAttendanceLoading) return <WorkspaceSkeleton />;
 
   const rawLog = logData as any;
+  const WorkspaceLogModalAny = WorkspaceLogModal as any;
 
   return (
     <>
-      {/* Loading Overlay Integration */}
       <AnimatePresence>
         {isSubmitting && (
           <LoadingOverlay
@@ -232,13 +227,13 @@ export default function WorkspaceLogs({
         onBoth={handleSelectBoth}
       />
 
-      <WorkspaceLogModal
+      <WorkspaceLogModalAny
         key={showLogFormModal ? "open" : "closed"}
         isOpen={showLogFormModal}
         isSubmitting={isSubmitting}
         onClose={() => setShowLogFormModal(false)}
         initialData={logData ? rawLog : undefined}
-        onSubmit={async (data) => {
+        onSubmit={async (data: any) => {
           const success = await submitWorkLog(data);
           if (success) setShowLogFormModal(false);
         }}

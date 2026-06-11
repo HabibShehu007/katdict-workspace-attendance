@@ -34,10 +34,20 @@ export default function Performance() {
     let totalEntries = 0;
 
     logs.forEach((log) => {
-      log.tech_stacks?.forEach((stack: string) => {
-        counts[stack] = (counts[stack] || 0) + 1;
-        totalEntries++;
-      });
+      // Type Narrowing: Only access tech_stacks if the role is web_development
+      if (log.role === "web_development" && log.tech_stacks) {
+        log.tech_stacks.forEach((stack: string) => {
+          counts[stack] = (counts[stack] || 0) + 1;
+          totalEntries++;
+        });
+      }
+      // If you also want to count design tools for designers:
+      else if (log.role === "ui_ux_design" && log.design_tools) {
+        log.design_tools.forEach((tool: string) => {
+          counts[tool] = (counts[tool] || 0) + 1;
+          totalEntries++;
+        });
+      }
     });
 
     return Object.entries(counts).map(([key, count]) => ({

@@ -3,19 +3,14 @@ import { PLACEHOLDER_SUGGESTIONS } from "../../constants/techStacks";
 
 interface UseWorkspaceLogModalProps {
   isOpen: boolean;
-  onSubmit: (data: {
-    title: string;
-    desc: string;
-    stacks: string[];
-    uiUrl?: string;
-    githubUrl: string;
-    liveUrl?: string;
-  }) => void;
+  userRole: "web_development" | "ui_ux_design";
+  onSubmit: (data: any) => void;
   initialData?: any;
 }
 
 export function useWorkspaceLogModal({
   isOpen,
+  userRole,
   onSubmit,
   initialData,
 }: UseWorkspaceLogModalProps) {
@@ -28,7 +23,7 @@ export function useWorkspaceLogModal({
   const [liveUrl, setLiveUrl] = useState("");
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
-  // THE PREFILL ENGINE: Now mapped to the keys actually present in your object
+  // THE PREFILL ENGINE
   useEffect(() => {
     if (isOpen) {
       if (
@@ -36,7 +31,6 @@ export function useWorkspaceLogModal({
         typeof initialData === "object" &&
         Object.keys(initialData).length > 0
       ) {
-        // Use the exact keys shown in your console log: title, desc, stacks, etc.
         setTitle(initialData.title || "");
         setDesc(initialData.desc || "");
         setSelectedStacks(initialData.stacks || []);
@@ -49,6 +43,7 @@ export function useWorkspaceLogModal({
           "Next.js",
           "TypeScript",
           "Supabase",
+          "Figma",
         ];
 
         const extractedCustom = (initialData.stacks || []).filter(
@@ -60,7 +55,6 @@ export function useWorkspaceLogModal({
         setGithubUrl(initialData.githubUrl || "");
         setLiveUrl(initialData.liveUrl || "");
       } else {
-        // Reset state
         setTitle("");
         setDesc("");
         setSelectedStacks([]);
@@ -71,16 +65,20 @@ export function useWorkspaceLogModal({
       }
     }
   }, [isOpen, initialData]);
-  // Dynamic placeholder switcher: Preserved
+
+  // FIXED: Dynamic placeholder switcher
   useEffect(() => {
     if (!isOpen) return;
+
+    // Select the array based on role first
+    const rolePlaceholders = PLACEHOLDER_SUGGESTIONS[userRole] || [];
+
     const interval = setInterval(() => {
-      setPlaceholderIndex(
-        (prev) => (prev + 1) % PLACEHOLDER_SUGGESTIONS.length,
-      );
+      setPlaceholderIndex((prev) => (prev + 1) % rolePlaceholders.length);
     }, 3500);
+
     return () => clearInterval(interval);
-  }, [isOpen]);
+  }, [isOpen, userRole]);
 
   const handleToggleStack = useCallback((stack: string) => {
     setSelectedStacks((prev) =>
@@ -100,24 +98,17 @@ export function useWorkspaceLogModal({
   const handleFormSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      if (!title.trim() || !desc.trim() || !githubUrl.trim()) return;
+      // Added basic validation
+      if (!title.trim() || !desc.trim()) return;
 
       onSubmit({
         title: title.trim(),
         desc: desc.trim(),
         stacks: selectedStacks,
         uiUrl: uiUrl.trim() || undefined,
-        githubUrl: githubUrl.trim(),
+        githubUrl: githubUrl.trim() || undefined,
         liveUrl: liveUrl.trim() || undefined,
       });
-
-      setTitle("");
-      setDesc("");
-      setSelectedStacks([]);
-      setCustomStacks([]);
-      setUiUrl("");
-      setGithubUrl("");
-      setLiveUrl("");
     },
     [title, desc, selectedStacks, uiUrl, githubUrl, liveUrl, onSubmit],
   );
