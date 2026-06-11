@@ -65,7 +65,7 @@ export default function EditProfileModal({
               {/* LOCKED FULL NAME FIELD */}
               <div>
                 <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">
-                  Full Name (Locked)
+                  Full Name
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 w-4 h-4 text-zinc-400" />
@@ -78,7 +78,7 @@ export default function EditProfileModal({
                 </div>
               </div>
 
-              {/* Editable Fields */}
+              {/* LOCKED ROLE FIELD */}
               <div>
                 <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">
                   Role
@@ -87,11 +87,14 @@ export default function EditProfileModal({
                   <Briefcase className="absolute left-3 top-3 w-4 h-4 text-zinc-400" />
                   <input
                     type="text"
-                    value={formData.role}
-                    onChange={(e) =>
-                      setFormData({ ...formData, role: e.target.value })
+                    disabled
+                    // Use your helper or just display the value directly
+                    value={
+                      formData.role === "ui_ux_design"
+                        ? "UI/UX & GRAPHIC DESIGN"
+                        : "WEB DEVELOPMENT"
                     }
-                    className="w-full bg-zinc-50 dark:bg-zinc-800 pl-10 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="w-full bg-zinc-100 dark:bg-zinc-950 pl-10 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-500 cursor-not-allowed font-medium"
                   />
                 </div>
               </div>

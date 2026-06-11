@@ -2,8 +2,10 @@ import { motion } from "framer-motion";
 import { Monitor, Server, Terminal, Plus, Check } from "lucide-react";
 import { useTechStackSelector } from "../../hooks/WorkSpaceLog-Components-hooks/useTechStackSelector";
 import type { TabType } from "../../hooks/WorkSpaceLog-Components-hooks/useTechStackSelector";
+import type { UserRole } from "../../types/auth.types"; // Add this
 
 interface TechStackSelectorProps {
+  userRole: UserRole; // Add this
   selectedStacks: string[];
   onToggleStack: (stack: string) => void;
   onAddCustomStack: (stack: string) => void;
@@ -11,12 +13,13 @@ interface TechStackSelectorProps {
 }
 
 export default function TechStackSelector({
+  userRole, // Add this
   selectedStacks,
   onToggleStack,
   onAddCustomStack,
   customStacks,
 }: TechStackSelectorProps) {
-  // Pull isolated view states cleanly into the selector template
+  // Pass userRole here
   const {
     activeTab,
     setActiveTab,
@@ -24,7 +27,7 @@ export default function TechStackSelector({
     setCustomInput,
     getDisplayOptions,
     handleCustomSubmit,
-  } = useTechStackSelector({ customStacks, onAddCustomStack });
+  } = useTechStackSelector({ userRole, customStacks, onAddCustomStack });
 
   // FIXED: Manual "Enter" key listener to replace nested <form> behavior
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -38,12 +41,17 @@ export default function TechStackSelector({
     <div className="space-y-3">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <label className="text-xs font-black text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5 uppercase tracking-wider">
-          Technologies Used
+          {userRole === "ui_ux_design"
+            ? "Design Tools & Categories"
+            : "Technologies Used"}
         </label>
 
-        {/* Tab Bar Layout */}
+        {/* Dynamic Tab Bar */}
         <div className="flex p-0.5 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl text-[11px] font-bold self-start sm:self-auto">
-          {(["frontend", "backend", "fullstack"] as TabType[]).map((tab) => (
+          {(userRole === "ui_ux_design"
+            ? (["tools", "categories"] as TabType[])
+            : (["frontend", "backend", "fullstack"] as TabType[])
+          ).map((tab) => (
             <button
               type="button"
               key={tab}
@@ -54,28 +62,18 @@ export default function TechStackSelector({
                   : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
               }`}
             >
-              {tab === "frontend" && (
-                <motion.div layoutId="ico">
-                  <Monitor className="w-3 h-3" />
-                </motion.div>
-              )}
-              {tab === "backend" && (
-                <motion.div layoutId="ico">
-                  <Server className="w-3 h-3" />
-                </motion.div>
-              )}
-              {tab === "fullstack" && (
-                <motion.div layoutId="ico">
-                  <Terminal className="w-3 h-3" />
-                </motion.div>
-              )}
+              {/* Icons change based on role */}
+              {tab === "frontend" && <Monitor className="w-3 h-3" />}
+              {tab === "backend" && <Server className="w-3 h-3" />}
+              {tab === "fullstack" && <Terminal className="w-3 h-3" />}
+
               <span>{tab === "fullstack" ? "Full Stack" : tab}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Main Options Render Layer Box */}
+      {/* Main Options Render Layer */}
       <div className="p-3 bg-zinc-50/50 dark:bg-zinc-800/20 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl min-h-[100px]">
         <motion.div
           layout="position"
@@ -103,11 +101,15 @@ export default function TechStackSelector({
         </motion.div>
       </div>
 
-      {/* FIXED: Changed from <form> to <div> to stop nested form errors */}
+      {/* Custom Input Area */}
       <div className="flex gap-2">
         <input
           type="text"
-          placeholder="Can't find your stack? Type it here... (e.g., Figma, Docker)"
+          placeholder={
+            userRole === "ui_ux_design"
+              ? "Add custom tool... (e.g., Penpot, Framer)"
+              : "Can't find your stack? Type it here... (e.g., Docker)"
+          }
           value={customInput}
           onChange={(e) => setCustomInput(e.target.value)}
           onKeyDown={handleKeyDown}

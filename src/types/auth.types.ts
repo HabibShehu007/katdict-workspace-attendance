@@ -1,5 +1,7 @@
 // types/auth.types.ts
 
+export type UserRole = "admin" | "web_development" | "ui_ux_design";
+
 export interface UserProfile {
   id: string;
   fullName: string;
@@ -7,8 +9,7 @@ export interface UserProfile {
   current_streak?: number;
   highest_streak?: number;
   createdAt: string;
-  // Professional adaptations
-  role?: string;
+  role: UserRole; // Enforced role
   avatarUrl?: string;
   bio?: string;
 }
@@ -19,7 +20,8 @@ export interface AttendanceStatus {
   data: any | null;
 }
 
-export interface WorkspaceHistoryItem {
+// 1. Base interface containing every field shared by ALL roles
+interface BaseHistoryItem {
   id: number;
   user_id: number;
   day_name: string;
@@ -29,12 +31,28 @@ export interface WorkspaceHistoryItem {
   is_on_site: boolean;
   project_title: string;
   project_description: string;
-  tech_stacks: string[];
-  ui_reference_url?: string;
+  is_log_empty: boolean;
+  ui_reference_url?: string; // Shared by everyone
+}
+
+// 2. Developer-specific variant
+interface WebDevHistory extends BaseHistoryItem {
+  role: "web_development";
+  tech_stacks: string[]; // Preserved from your original definition
   github_url?: string;
   live_preview_url?: string;
-  is_log_empty: boolean;
 }
+
+// 3. Designer-specific variant
+interface DesignHistory extends BaseHistoryItem {
+  role: "ui_ux_design";
+  // You can add design-specific arrays here
+  design_tools?: string[];
+  asset_drive_url?: string;
+}
+
+// 4. The union type used by your history logs
+export type WorkspaceHistoryItem = WebDevHistory | DesignHistory;
 
 export interface AuthContextType {
   // Auth & Session

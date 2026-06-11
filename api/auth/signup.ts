@@ -4,7 +4,6 @@ import bcrypt from "bcryptjs";
 import { getWelcomeEmail } from "./welcomeTemplate.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // 1. Enforce strict POST protocol
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed. Use POST." });
   }
@@ -17,15 +16,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const sql = neon(dbUrl);
 
   try {
-    const { fullName, email, password } = req.body;
+    // 1. Destructure 'role' from the request body
+    const { fullName, email, password, role } = req.body;
 
-    if (!fullName || !email || !password) {
+    // 2. Add 'role' to the validation check
+    if (!fullName || !email || !password || !role) {
       return res
         .status(400)
-        .json({ error: "All profile fields are required." });
+        .json({ error: "All profile fields and role are required." });
     }
 
-    // 2. Check if user exists
     const existingUser = await sql`
       SELECT id FROM users WHERE email = ${email.toLowerCase().trim()}
     `;
@@ -33,16 +33,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(409).json({ error: "Email already registered." });
     }
 
-    // 3. Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 4. Insert User
+    // 3. Update the INSERT query to include the 'role' column
     const [newUser] = await sql`
-      INSERT INTO users (full_name, email, password_hash)
-      VALUES (${fullName.trim()}, ${email.toLowerCase().trim()}, ${hashedPassword})
-      RETURNING id, full_name, email, created_at;
+      INSERT INTO users (full_name, email, password_hash, role)
+      VALUES (${fullName.trim()}, ${email.toLowerCase().trim()}, ${hashedPassword}, ${role})
+      RETURNING id, full_name, email, role, created_at;
     `;
-
     // 5. Trigger Brevo Email (Native Fetch)
     const emailResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
@@ -77,6 +75,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         id: newUser.id,
         fullName: newUser.full_name,
         email: newUser.email,
+        role: newUser.role,
       },
     });
   } catch (error: any) {

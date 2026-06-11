@@ -12,29 +12,30 @@ export function useSignUp({ onSuccess }: UseSignUpArgs) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSignUpSubmit = async (e: React.FormEvent) => {
+  // Updated to accept 'role' as an argument
+  const handleSignUpSubmit = async (e: React.FormEvent, role: string) => {
     e.preventDefault();
 
-    // 1. Clean UI validation checks before opening network stream
-    if (!fullName || !email || !password || !confirmPassword) {
-      toast.error("Please fill in all fields to register your account.");
+    // 1. Validation checks
+    if (!fullName || !email || !password || !confirmPassword || !role) {
+      toast.error("Please fill in all fields, including your role.");
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match. Please verify and try again.");
+      toast.error("Passwords do not match.");
       return;
     }
 
     if (password.length < 6) {
-      toast.error(" Password must be at least 6 characters.");
+      toast.error("Password must be at least 6 characters.");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // 2. Fire the real API call to our Vercel serverless function endpoint
+      // 2. API call including the new 'role' field
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
@@ -44,35 +45,30 @@ export function useSignUp({ onSuccess }: UseSignUpArgs) {
           fullName,
           email,
           password,
+          role, // Now sending the role to the backend
         }),
       });
 
       const data = await response.json();
 
-      // 3. Catch structural rejections (400, 409 duplicate email, 500 database errors)
       if (!response.ok) {
         throw new Error(data.error || "Registration system failed.");
       }
 
-      // 4. On absolute success, celebrate and reroute
       toast.success(
         data.message ||
           "Welcome aboard! Your workspace account has been created.",
       );
 
-      // Clean the form state out
+      // Clean the form
       setFullName("");
       setEmail("");
       setPassword("");
       setConfirmPassword("");
 
-      onSuccess(); // Triggers the router redirect to /login
+      onSuccess();
     } catch (err: any) {
-      // Direct message stream from backend or fallback network message
-      toast.error(
-        err.message ||
-          "Registration could not be completed. Check your server connection.",
-      );
+      toast.error(err.message || "Registration could not be completed.");
     } finally {
       setIsLoading(false);
     }

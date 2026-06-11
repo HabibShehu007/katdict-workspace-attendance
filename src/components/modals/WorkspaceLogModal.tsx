@@ -11,6 +11,7 @@ import {
 import TechStackSelector from "./TechStackSelector";
 import { PLACEHOLDER_SUGGESTIONS } from "../../constants/techStacks";
 import { useWorkspaceLogModal } from "../../hooks/WorkSpaceLog-Components-hooks/useWorkspaceLogModal";
+import { useAuth } from "../../context/AuthContext";
 
 interface WorkspaceLogModalProps {
   isOpen: boolean;
@@ -24,7 +25,7 @@ interface WorkspaceLogModalProps {
     liveUrl?: string;
   }) => void;
   isSubmitting?: boolean;
-  initialData?: any; // 🔥 Added this to accept existing log data
+  initialData?: any;
 }
 
 export default function WorkspaceLogModal({
@@ -32,8 +33,13 @@ export default function WorkspaceLogModal({
   onClose,
   onSubmit,
   isSubmitting = false,
-  initialData, // 🔥 Destructure it here
+  initialData,
 }: WorkspaceLogModalProps) {
+  const { user } = useAuth();
+  const userRole = user?.role || "web_development";
+  const roleKey =
+    userRole === "ui_ux_design" ? "ui_ux_design" : "web_development";
+
   const {
     title,
     setTitle,
@@ -54,14 +60,17 @@ export default function WorkspaceLogModal({
   } = useWorkspaceLogModal({
     isOpen,
     onSubmit,
-    initialData, // 🔥 Pass it into the hook so it can pre-fill the fields
+    initialData,
   });
+
+  // Validation Logic
+  const isGithubValid =
+    !githubUrl || githubUrl.startsWith("https://github.com");
 
   return (
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-          {/* Backdrop overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -78,7 +87,6 @@ export default function WorkspaceLogModal({
             transition={{ type: "spring", stiffness: 380, damping: 28 }}
             className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 rounded-2xl shadow-xl z-10 my-auto max-h-[90vh] flex flex-col"
           >
-            {/* Close button */}
             <button
               onClick={onClose}
               disabled={isSubmitting}
@@ -87,7 +95,6 @@ export default function WorkspaceLogModal({
               <X className="w-4 h-4" />
             </button>
 
-            {/* Header Section */}
             <div className="mb-5 text-left pr-6">
               <h3 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight">
                 Daily Work Details
@@ -98,97 +105,98 @@ export default function WorkspaceLogModal({
               </p>
             </div>
 
-            {/* Scrollable Container with Hidden Native Scrollbars */}
             <form
               onSubmit={handleFormSubmit}
-              className="space-y-4 text-left overflow-y-auto pr-1 flex-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              className="space-y-4 text-left overflow-y-auto pr-1 flex-1 scrollbar-none"
             >
-              {/* Field 1: Project Focus Input */}
               <div className="space-y-1.5">
                 <label className="text-xs font-black text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5 uppercase tracking-wider">
                   <Layers className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
-                  Project Focus *
+                  Project Title
                 </label>
-                <div className="relative flex items-center bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden focus-within:border-emerald-500 dark:focus-within:border-emerald-500 transition-all">
-                  <input
-                    type="text"
-                    required
-                    disabled={isSubmitting}
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full text-sm px-3.5 py-2.5 text-zinc-900 dark:text-white bg-transparent focus:outline-hidden z-10 disabled:opacity-60"
-                  />
-                  <AnimatePresence mode="wait">
-                    {!title && (
-                      <motion.span
-                        key={placeholderIndex}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 0.6 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.25 }}
-                        className="absolute left-3.5 text-sm text-zinc-400 dark:text-zinc-500 pointer-events-none select-none font-medium"
-                      >
-                        {PLACEHOLDER_SUGGESTIONS[placeholderIndex]}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </div>
+                <input
+                  type="text"
+                  required
+                  disabled={isSubmitting}
+                  placeholder={
+                    PLACEHOLDER_SUGGESTIONS[roleKey][
+                      placeholderIndex % PLACEHOLDER_SUGGESTIONS[roleKey].length
+                    ]
+                  }
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full text-sm px-3.5 py-2.5 bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:border-emerald-500 transition-all"
+                />
               </div>
 
-              {/* Field 2: Work Description Textarea */}
               <div className="space-y-1.5">
                 <label className="text-xs font-black text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5 uppercase tracking-wider">
                   <AlignLeft className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
-                  Work Description *
+                  Project Description
                 </label>
                 <textarea
                   required
                   rows={3}
-                  disabled={isSubmitting}
-                  placeholder="What specific components or problems are you working through today?"
                   value={desc}
                   onChange={(e) => setDesc(e.target.value)}
-                  className="w-full text-sm bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 text-zinc-900 dark:text-white focus:outline-hidden focus:border-emerald-500 dark:focus:border-emerald-500 transition-all placeholder-zinc-400 dark:placeholder-zinc-500 font-medium resize-none disabled:opacity-60"
+                  className="w-full text-sm bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:border-emerald-500 transition-all"
                 />
               </div>
 
-              {/* Field 3: Technology Tag Row */}
               <TechStackSelector
+                userRole={userRole}
                 selectedStacks={selectedStacks}
                 onToggleStack={handleToggleStack}
                 onAddCustomStack={handleAddCustomStack}
                 customStacks={customStacks}
               />
 
-              {/* Field 4: Required GitHub Link Input */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-black text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5 uppercase tracking-wider">
-                  <GitBranch className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
-                  GitHub Repository Link *
-                </label>
-                <input
-                  type="url"
-                  required
-                  disabled={isSubmitting}
-                  placeholder="e.g., https://github.com/username/repository"
-                  value={githubUrl || ""}
-                  onChange={(e) => setGithubUrl(e.target.value)}
-                  className="w-full text-sm bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 text-zinc-900 dark:text-white focus:outline-hidden focus:border-emerald-500 dark:focus:border-emerald-500 transition-all placeholder-zinc-400 dark:placeholder-zinc-500 font-medium disabled:opacity-60"
-                />
+              {userRole === "web_development" && (
+                <>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-black text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5 uppercase tracking-wider">
+                      <GitBranch className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
+                      GitHub Repository Link *
+                    </label>
+                    <input
+                      type="url"
+                      required
+                      value={githubUrl || ""}
+                      onChange={(e) => setGithubUrl(e.target.value)}
+                      className={`w-full text-sm px-3.5 py-2.5 border rounded-xl transition-all text-zinc-900 dark:text-white ${
+                        !isGithubValid
+                          ? "border-red-500 bg-red-50 dark:bg-red-950/30 dark:border-red-800"
+                          : "border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/40"
+                      }`}
+                    />
+                    {!isGithubValid && (
+                      <p className="text-[10px] text-red-500 font-bold">
+                        Must start with https://github.com
+                      </p>
+                    )}
+                    <div className="flex gap-2 p-3 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-medium">
+                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                      <p>
+                        A GitHub repository link is required for code tracking.
+                      </p>
+                    </div>
+                  </div>
 
-                {/* Notice Info Card for Staff Tracking Requirements */}
-                <div className="flex gap-2 p-3 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 text-blue-700 dark:text-blue-400 text-xs leading-relaxed font-medium">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <p>
-                    A GitHub repository link is required so senior staff members
-                    can view and track your code updates. You can modify this
-                    link at any time before the closing window cuts off at{" "}
-                    <strong>12:00 PM noon</strong>.
-                  </p>
-                </div>
-              </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-black text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5 uppercase tracking-wider">
+                      <ExternalLink className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
+                      Live Production URL (Optional)
+                    </label>
+                    <input
+                      type="url"
+                      value={liveUrl || ""}
+                      onChange={(e) => setLiveUrl(e.target.value)}
+                      className="w-full text-sm bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5"
+                    />
+                  </div>
+                </>
+              )}
 
-              {/* Field 5: UI Reference / Figma Link */}
               <div className="space-y-1.5">
                 <label className="text-xs font-black text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5 uppercase tracking-wider">
                   <ImagePlus className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
@@ -196,63 +204,19 @@ export default function WorkspaceLogModal({
                 </label>
                 <input
                   type="url"
-                  disabled={isSubmitting}
-                  placeholder="e.g., https://figma.com/file/... or design link"
-                  value={uiUrl}
+                  value={uiUrl || ""}
                   onChange={(e) => setUiUrl(e.target.value)}
-                  className="w-full text-sm bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 text-zinc-900 dark:text-white focus:outline-hidden focus:border-emerald-500 dark:focus:border-emerald-500 transition-all placeholder-zinc-400 dark:placeholder-zinc-500 font-medium disabled:opacity-60"
+                  className="w-full text-sm bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5"
                 />
               </div>
 
-              {/* Field 6: Live Hosted Project Preview Link (Moved to Bottom) */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-black text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5 uppercase tracking-wider">
-                  <ExternalLink className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
-                  Live Production URL (Optional)
-                </label>
-                <input
-                  type="url"
-                  disabled={isSubmitting}
-                  placeholder="e.g., https://your-project.vercel.app"
-                  value={liveUrl || ""}
-                  onChange={(e) => setLiveUrl(e.target.value)}
-                  className="w-full text-sm bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 text-zinc-900 dark:text-white focus:outline-hidden focus:border-emerald-500 dark:focus:border-emerald-500 transition-all placeholder-zinc-400 dark:placeholder-zinc-500 font-medium disabled:opacity-60"
-                />
-              </div>
-
-              {/* Action Button Container */}
               <div className="pt-2 sticky bottom-0 bg-white dark:bg-zinc-900">
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 px-4 rounded-xl shadow-md transition-all active:scale-98 text-sm cursor-pointer tracking-wide flex items-center justify-center gap-2 disabled:bg-zinc-400 dark:disabled:bg-zinc-700 disabled:cursor-not-allowed disabled:scale-100"
+                  disabled={isSubmitting || !isGithubValid}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 rounded-xl transition-all disabled:bg-zinc-400"
                 >
-                  {isSubmitting ? (
-                    <>
-                      <svg
-                        className="animate-spin h-4 w-4 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      <span>Saving your log...</span>
-                    </>
-                  ) : (
-                    <span>Save Log Submission</span>
-                  )}
+                  {isSubmitting ? "Saving..." : "Save Log Submission"}
                 </button>
               </div>
             </form>

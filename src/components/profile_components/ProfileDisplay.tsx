@@ -18,6 +18,19 @@ export default function ProfileDisplay({
 }: ProfileDisplayProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Add this helper to map your database roles to display labels
+  const getRoleLabel = (role: string) => {
+    const cleanRole = role?.trim();
+    switch (cleanRole) {
+      case "ui_ux_design":
+        return "GRAPHIC & UI/UX DESIGN";
+      case "web_development":
+        return "WEB DEVELOPMENT";
+      default:
+        return cleanRole || "DEVELOPER";
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && onAvatarUpdate) onAvatarUpdate(file);
@@ -65,7 +78,7 @@ export default function ProfileDisplay({
           {user.fullName}
         </h2>
         <p className="text-sm text-emerald-600 dark:text-emerald-400 font-bold mt-1">
-          {user.role || "Developer"}
+          {getRoleLabel(user.role)}
         </p>
 
         <div className="w-full mt-6 pt-6 border-t border-zinc-100 dark:border-zinc-800 text-left space-y-4">
@@ -80,7 +93,7 @@ export default function ProfileDisplay({
           className="w-full mt-8 flex items-center justify-center gap-2 py-3 bg-zinc-900 dark:bg-zinc-800 hover:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded-xl transition-all font-bold text-sm"
         >
           <Edit2 className="w-4 h-4" />
-          Edit Profile
+          Edit Bio
         </button>
       </div>
     </div>

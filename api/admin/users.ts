@@ -7,7 +7,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // LIST USERS
   if (req.method === "GET") {
     const users =
-      await sql`SELECT id, full_name, email FROM users WHERE role != 'admin' ORDER BY full_name ASC`;
+      await sql`SELECT id, full_name, email, role FROM users WHERE role != 'admin' ORDER BY full_name ASC`;
     return res.status(200).json({ users });
   }
 

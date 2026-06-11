@@ -10,14 +10,13 @@ import {
   GitBranch,
   ExternalLink,
   User,
+  Shield,
 } from "lucide-react";
-// Import your centralized type
 import { type AdminLogItem } from "../../types/admin.types";
 
 export interface AdminHistoryDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  // Use the central type directly
   log: (AdminLogItem & { day_name?: string; formatted_date?: string }) | null;
 }
 
@@ -59,71 +58,59 @@ export default function AdminHistoryDetailsModal({
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
           className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-xl overflow-hidden text-left z-10"
         >
+          {/* Header */}
           <div className="p-5 border-b border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between">
             <div className="flex flex-col">
               <div className="flex items-center gap-2 text-zinc-900 dark:text-white">
-                <Calendar className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <span className="text-xs font-black tracking-wide uppercase">
-                  {log.day_name || "Daily"} — Summary
+                <Calendar className="w-4 h-4 text-emerald-600" />
+                <span className="text-[10px] font-black tracking-widest uppercase">
+                  {log.day_name || "Daily"} — {log.formatted_date}
                 </span>
               </div>
-              {log.user_name && (
-                <div className="flex items-center gap-1.5 mt-1 text-emerald-600 dark:text-emerald-400">
-                  <User className="w-3 h-3" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">
-                    {log.user_name}
-                  </span>
+              <div className="flex items-center gap-2 mt-1.5">
+                <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-[10px] uppercase">
+                  <User className="w-3 h-3" /> {log.user_name}
                 </div>
-              )}
+                <span className="flex items-center gap-1 text-[9px] font-bold text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded uppercase">
+                  <Shield className="w-2.5 h-2.5" /> {log.user_role}
+                </span>
+              </div>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700/80 text-zinc-500 dark:text-zinc-400 rounded-lg cursor-pointer transition-all"
+              className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-all"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4 text-zinc-500" />
             </button>
           </div>
 
-          <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
-            {/* Time and Status Section */}
+          {/* Body */}
+          <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+            {/* Time & Status Grid */}
             <div className="grid grid-cols-2 gap-3">
-              {/* Sign-In Time Card */}
-              <div className="p-3.5 bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700/50 rounded-xl">
-                <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase block tracking-wider flex items-center gap-1">
-                  <Clock className="w-3 h-3" /> Sign-In Time
+              <div className="p-3.5 bg-zinc-50 dark:bg-zinc-800/40 rounded-xl border border-zinc-200 dark:border-zinc-700">
+                <span className="text-[10px] font-bold text-zinc-400 uppercase flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> Sign-In
                 </span>
-                <span className="text-sm font-black text-zinc-900 dark:text-white block mt-1">
+                <span className="text-sm font-black mt-1 block">
                   {formatTime(log.arrival_time)}
                 </span>
               </div>
-
-              {/* Arrival Status Card */}
               <div
-                className={`p-3.5 border rounded-xl flex flex-col justify-center ${
-                  log.is_late
-                    ? "bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/50"
-                    : "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50"
-                }`}
+                className={`p-3.5 border rounded-xl ${log.is_late ? "bg-amber-50 border-amber-200" : "bg-emerald-50 border-emerald-200"}`}
               >
-                <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase block tracking-wider">
-                  Arrival Status
+                <span className="text-[10px] font-bold text-zinc-500 uppercase">
+                  Status
                 </span>
                 <span
-                  className={`text-xs font-black flex items-center gap-1 mt-1 ${
-                    log.is_late
-                      ? "text-amber-800 dark:text-amber-400"
-                      : "text-emerald-800 dark:text-emerald-400"
-                  }`}
+                  className={`text-xs font-black flex items-center gap-1 mt-1 ${log.is_late ? "text-amber-800" : "text-emerald-800"}`}
                 >
                   {log.is_late ? (
-                    <>
-                      <AlertTriangle className="w-3.5 h-3.5" /> Late
-                    </>
+                    <AlertTriangle className="w-3.5 h-3.5" />
                   ) : (
-                    <>
-                      <CheckCircle2 className="w-3.5 h-3.5" /> On Time
-                    </>
+                    <CheckCircle2 className="w-3.5 h-3.5" />
                   )}
+                  {log.is_late ? "Late" : "On Time"}
                 </span>
               </div>
             </div>
@@ -131,85 +118,61 @@ export default function AdminHistoryDetailsModal({
             {!log.is_log_empty ? (
               <>
                 <div className="space-y-1">
-                  <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider block">
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase">
                     Project Focus
                   </span>
-                  <h2 className="text-sm font-bold text-zinc-900 dark:text-white leading-snug">
-                    {log.project_title}
-                  </h2>
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider block">
-                    Work Description
-                  </span>
-                  <p className="text-xs text-zinc-600 dark:text-zinc-300 font-medium leading-relaxed bg-zinc-50 dark:bg-zinc-800/20 p-4 rounded-xl border border-zinc-100 dark:border-zinc-800/40">
+                  <h2 className="text-sm font-bold">{log.project_title}</h2>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
                     {log.project_description}
                   </p>
                 </div>
 
-                {log.tech_stacks && log.tech_stacks.length > 0 && (
-                  <div className="space-y-2">
-                    <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider flex items-center gap-1">
-                      <Code2 className="w-3 h-3" /> Technologies Used
+                {/* Role-Specific Content */}
+                {log.user_role === "web_development" && (
+                  <div className="space-y-3 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase flex items-center gap-1">
+                      <Code2 className="w-3 h-3" /> Tech Stack
                     </span>
                     <div className="flex flex-wrap gap-1.5">
-                      {log.tech_stacks.map((tech) => (
+                      {log.tech_stacks?.map((t) => (
                         <span
-                          key={tech}
-                          className="text-[11px] font-bold px-2.5 py-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/60 text-zinc-700 dark:text-zinc-300 rounded-lg"
+                          key={t}
+                          className="text-[10px] font-bold px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-md"
                         >
-                          {tech}
+                          {t}
                         </span>
                       ))}
                     </div>
-                  </div>
-                )}
-
-                <div className="pt-2 space-y-2 border-t border-zinc-100 dark:border-zinc-800/60">
-                  <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider block">
-                    Project Links
-                  </span>
-                  <div className="flex flex-col gap-2">
                     {log.github_url && (
                       <a
                         href={log.github_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 text-xs font-black text-emerald-600 hover:underline"
+                        className="flex items-center gap-2 text-xs font-bold text-emerald-600"
                       >
-                        <GitBranch className="w-3.5 h-3.5 text-zinc-400" />{" "}
-                        GitHub Repository
-                      </a>
-                    )}
-                    {log.ui_reference_url && (
-                      <a
-                        href={log.ui_reference_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 text-xs font-black text-emerald-600 hover:underline"
-                      >
-                        <Layers className="w-3.5 h-3.5 text-zinc-400" /> UI
-                        Reference Link
-                      </a>
-                    )}
-                    {log.live_preview_url && (
-                      <a
-                        href={log.live_preview_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 text-xs font-black text-emerald-600 hover:underline"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5 text-zinc-400" />{" "}
-                        Live Production URL
+                        <GitBranch className="w-3.5 h-3.5" /> Repository
                       </a>
                     )}
                   </div>
-                </div>
+                )}
+
+                {log.user_role === "ui_ux_design" && (
+                  <div className="space-y-3 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase flex items-center gap-1">
+                      <Layers className="w-3 h-3" /> Design Assets
+                    </span>
+                    {log.asset_drive_url && (
+                      <a
+                        href={log.asset_drive_url}
+                        className="flex items-center gap-2 text-xs font-bold text-purple-600"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" /> Asset Drive
+                      </a>
+                    )}
+                  </div>
+                )}
               </>
             ) : (
-              <p className="text-center text-xs text-zinc-400 py-4 italic">
-                No work details submitted for this day.
+              <p className="text-center text-xs text-zinc-400 italic">
+                No details submitted.
               </p>
             )}
           </div>

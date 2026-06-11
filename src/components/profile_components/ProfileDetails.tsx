@@ -10,73 +10,89 @@ export default function ProfileDetails({
   user,
   onEditClick,
 }: ProfileDetailsProps) {
+  const getRoleLabel = (role: string) => {
+    const cleanRole = role?.trim();
+    switch (cleanRole) {
+      case "ui_ux_design":
+        return "GRAPHIC & UI/UX DESIGN";
+      case "web_development":
+        return "WEB DEVELOPMENT";
+      default:
+        return cleanRole || "DEVELOPER";
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Organic Streak Section */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-emerald-50 dark:bg-emerald-900/20 p-5 rounded-3xl border border-emerald-100 dark:border-emerald-800">
-          <div className="flex items-center gap-2 mb-2 text-emerald-700 dark:text-emerald-400">
+        <div className="bg-emerald-50 dark:bg-emerald-950/30 p-6 rounded-3xl border border-emerald-100 dark:border-emerald-800/50 shadow-sm shadow-emerald-500/5">
+          <div className="flex items-center gap-2 mb-3 text-emerald-600 dark:text-emerald-400">
             <Zap className="w-4 h-4" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">
-              Current
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+              Current Streak
             </span>
           </div>
-          <p className="text-3xl font-black text-emerald-900 dark:text-white">
+          <p className="text-4xl font-black text-emerald-950 dark:text-white tracking-tighter">
             {user.current_streak || 0}
           </p>
-          <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-            Day Streak
+          <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 font-bold mt-1">
+            Days active
           </p>
         </div>
 
-        <div className="bg-zinc-50 dark:bg-zinc-800 p-5 rounded-3xl border border-zinc-200 dark:border-zinc-700">
-          <div className="flex items-center gap-2 mb-2 text-zinc-500 dark:text-zinc-400">
+        <div className="bg-zinc-50 dark:bg-zinc-800/50 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-700/50 shadow-sm">
+          <div className="flex items-center gap-2 mb-3 text-zinc-500 dark:text-zinc-400">
             <Award className="w-4 h-4" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">
-              Highest
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+              Best Record
             </span>
           </div>
-          <p className="text-3xl font-black text-zinc-900 dark:text-white">
+          <p className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter">
             {user.highest_streak || 0}
           </p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
-            Best Record
+          <p className="text-xs text-zinc-500/70 dark:text-zinc-400/70 font-bold mt-1">
+            Days achieved
           </p>
         </div>
       </div>
 
       {/* Bio & Role Section */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-bold text-zinc-900 dark:text-white">
-            Bio & Details
+        <div className="flex items-center justify-between mb-10">
+          <h3 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight">
+            Profile Overview
           </h3>
           <button
             onClick={onEditClick}
-            className="p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-black uppercase tracking-widest text-emerald-600 hover:text-white hover:bg-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 rounded-xl transition-all border border-emerald-100 dark:border-emerald-900"
           >
-            <Edit2 className="w-4 h-4" />
+            <Edit2 className="w-3.5 h-3.5" /> Edit Bio
           </button>
         </div>
 
-        <div className="space-y-8">
-          <div>
-            <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">
-              <BookOpen className="w-3 h-3" /> <span>Bio</span>
+        <div className="space-y-10">
+          {/* Enhanced Bold Bio */}
+          <div className="relative pl-6 border-l-4 border-emerald-500">
+            <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] mb-4">
+              <BookOpen className="w-3.5 h-3.5" />{" "}
+              <span>Professional Summary</span>
             </div>
-            <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed">
-              {user.bio ||
-                "No bio provided yet. Click edit to add a professional summary."}
+            <p className="text-lg text-zinc-800 dark:text-zinc-200 leading-relaxed font-semibold italic tracking-tight">
+              {user.bio
+                ? `“${user.bio}”`
+                : "No bio provided yet. Add a professional summary to help your team know you better."}
             </p>
           </div>
 
-          <div>
-            <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase tracking-wider mb-2">
-              <Briefcase className="w-3 h-3" /> <span>Professional Role</span>
+          {/* Bold Role Tag */}
+          <div className="pl-6 border-l-4 border-zinc-200 dark:border-zinc-700">
+            <div className="flex items-center gap-2 text-zinc-400 dark:text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] mb-4">
+              <Briefcase className="w-3.5 h-3.5" /> <span>Current Role</span>
             </div>
-            <p className="text-zinc-900 dark:text-white font-semibold">
-              {user.role || "Not specified"}
-            </p>
+            <div className="inline-flex items-center px-4 py-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-lg text-sm font-black tracking-widest shadow-lg shadow-zinc-900/20 dark:shadow-white/10">
+              {getRoleLabel(user.role)}
+            </div>
           </div>
         </div>
       </div>

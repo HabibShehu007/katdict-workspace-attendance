@@ -8,6 +8,7 @@ import {
   MapPin,
   Eye,
   EyeOff,
+  Briefcase,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -34,6 +35,7 @@ export default function SignUp() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [role, setRole] = useState("");
 
   return (
     <div className="min-h-screen w-full flex bg-zinc-50 dark:bg-zinc-800 transition-colors duration-400 ease-in-out">
@@ -89,7 +91,10 @@ export default function SignUp() {
             </p>
           </div>
 
-          <form onSubmit={handleSignUpSubmit} className="space-y-5">
+          <form
+            onSubmit={(e) => handleSignUpSubmit(e, role)}
+            className="space-y-5"
+          >
             {/* Full Name Input Field */}
             <div className="space-y-1.5">
               <label
@@ -135,6 +140,29 @@ export default function SignUp() {
                   disabled={isLoading}
                   className="w-full bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium rounded-xl border border-zinc-200 dark:border-zinc-700/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-hidden py-4 pl-12 pr-4 transition-all disabled:opacity-50 text-base"
                 />
+              </div>
+            </div>
+
+            {/* New Role Selection Dropdown */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                Professional Role
+              </label>
+              <div className="relative flex items-center">
+                <Briefcase className="absolute left-4 w-5 h-5 text-zinc-400 dark:text-zinc-500" />
+                <select
+                  required
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  disabled={isLoading}
+                  className="w-full bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium rounded-xl border border-zinc-200 dark:border-zinc-700/80 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-hidden py-4 pl-12 pr-4 transition-all disabled:opacity-50 text-base cursor-pointer appearance-none"
+                >
+                  <option value="" disabled>
+                    Select your profession
+                  </option>
+                  <option value="web_development">Web Development</option>
+                  <option value="ui_ux_design">UI/UX & Graphic Design</option>
+                </select>
               </div>
             </div>
 
