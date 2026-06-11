@@ -53,7 +53,7 @@ export default function SignUp() {
         </div>
       </div>
 
-      {/* LEFT PANEL: Graphic Context */}
+      {/* LEFT : Graphic Context */}
       <div
         className="hidden md:flex md:w-1/2 relative bg-cover bg-center items-end p-12 overflow-hidden"
         style={{ backgroundImage: "url('/KATDICT-2-scaled.jpg')" }}
