@@ -2,25 +2,39 @@ import { put } from "@vercel/blob";
 import { neon } from "@neondatabase/serverless";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
+// Helper function to read the stream into a buffer
+const getRawBody = (req: VercelRequest): Promise<Buffer> => {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    req.on("data", (chunk) => chunks.push(chunk));
+    req.on("end", () => resolve(Buffer.concat(chunks)));
+    req.on("error", reject);
+  });
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST")
     return res.status(405).json({ error: "Method not allowed" });
 
   const sql = neon(process.env.DATABASE_URL!);
 
-  // Note: For file uploads, you'll need to parse the request.
-  // Vercel Blob works best with standard FormData.
   try {
     const { searchParams } = new URL(req.url!, `https://${req.headers.host}`);
     const userId = searchParams.get("userId");
+
+    if (!userId) return res.status(400).json({ error: "Missing userId" });
+
+    // 1. Convert the locked request stream into a clean Buffer
+    const fileBuffer = await getRawBody(req);
     const filename = `avatar-${userId}-${Date.now()}.jpg`;
 
-    // 1. Upload to Vercel Blob
-    const blob = await put(filename, req, {
+    // 2. Upload the buffer to Vercel Blob
+    const blob = await put(filename, fileBuffer, {
       access: "public",
+      contentType: req.headers["content-type"] || "image/jpeg",
     });
 
-    // 2. Update Neon Database
+    // 3. Update Neon Database
     await sql`
       UPDATE users 
       SET avatar_url = ${blob.url} 

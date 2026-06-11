@@ -1,11 +1,14 @@
-// components/admin_components/AdminHistoryCard.tsx
 import { motion } from "framer-motion";
 import { ChevronRight, FileText, Timer, MapPin, User } from "lucide-react";
-import type { WorkspaceHistoryItem } from "../../../context/AuthContext";
+// 1. Import the centralized type
+import { type AdminLogItem } from "../../types/admin.types";
 
-// Define the type to include the joined user data
+// 2. Define props using AdminLogItem + the transient fields generated in the parent
 interface AdminHistoryCardProps {
-  log: WorkspaceHistoryItem & { user_name?: string };
+  log: AdminLogItem & {
+    day_name?: string;
+    formatted_date?: string;
+  };
   onInspectClick: (log: any) => void;
 }
 
@@ -30,12 +33,16 @@ export default function AdminHistoryCard({
 
         {/* Info badges and metadata row */}
         <div className="flex flex-wrap items-center gap-2 text-[11px] font-black tracking-wider uppercase">
-          <span className="text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 rounded-md">
-            {log.day_name}
-          </span>
-          <span className="text-zinc-400 dark:text-zinc-500 font-bold">
-            {log.formatted_date}
-          </span>
+          {log.day_name && (
+            <span className="text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 rounded-md">
+              {log.day_name}
+            </span>
+          )}
+          {log.formatted_date && (
+            <span className="text-zinc-400 dark:text-zinc-500 font-bold">
+              {log.formatted_date}
+            </span>
+          )}
 
           {/* Time Check Badge */}
           <span

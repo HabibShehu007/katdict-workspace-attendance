@@ -1,4 +1,3 @@
-// src/hooks/user_hooks/useProfileLogic.ts
 import { useState, useCallback } from "react";
 import type { UserProfile } from "../../types/auth.types";
 import { toast } from "sonner";
@@ -9,7 +8,6 @@ export function useProfileLogic(
 ) {
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // Update profile (text fields)
   const updateProfile = useCallback(
     async (data: Partial<UserProfile>) => {
       if (!user) return false;
@@ -42,7 +40,6 @@ export function useProfileLogic(
     [user, setUser],
   );
 
-  // Upload Avatar (file handling)
   const uploadAvatar = useCallback(
     async (file: File) => {
       if (!user) return false;
@@ -55,7 +52,11 @@ export function useProfileLogic(
           `/api/user/upload-avatar?userId=${user.id}`,
           {
             method: "POST",
-            body: file,
+            headers: {
+              "Content-Type": file.type,
+              "x-vercel-blob-filename": file.name,
+            },
+            body: file, // Raw file stream
           },
         );
 
@@ -66,7 +67,7 @@ export function useProfileLogic(
           setUser(updatedUser);
           localStorage.setItem("katdict_user", JSON.stringify(updatedUser));
 
-          toast.dismiss(); // Remove loading toast
+          toast.dismiss();
           toast.success("Avatar updated successfully!");
           return true;
         }

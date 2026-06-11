@@ -6,7 +6,7 @@ import type {
 } from "../../types/auth.types";
 
 export const BYPASS_LOCATION_GUARD = false;
-export const BYPASS_TIME_GUARD = true;
+export const BYPASS_TIME_GUARD = false;
 
 export function useAuthLogic() {
   const [user, setUser] = useState<UserProfile | null>(null);

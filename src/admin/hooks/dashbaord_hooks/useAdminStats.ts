@@ -20,6 +20,7 @@ export function useAdminStats() {
       if (!response.ok) throw new Error("Failed to fetch dashboard stats");
       return response.json();
     },
-    refetchInterval: 30000, // Keep the dashboard live
+    refetchInterval: 30000,
+    refetchOnWindowFocus: true, // Refreshes when the user returns to the tab
   });
 }

@@ -35,109 +35,111 @@ export default function UserManagement() {
 
   return (
     <AdminDashboardLayout>
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-8">
+        {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-zinc-900 dark:text-white">
+            <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
               Workspace Users
             </h1>
-            <p className="text-zinc-500 text-sm">
+            <p className="text-zinc-500">
               Manage user access and workspace permissions.
             </p>
           </div>
 
-          <div className="relative w-full md:w-64">
+          <div className="relative w-full md:w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
             <input
               type="text"
-              placeholder="Search users..."
+              placeholder="Search by name or email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
             />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-sm">
+        {/* Improved Table Container */}
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-sm">
           {isLoading ? (
-            <div className="p-12 flex justify-center items-center">
-              <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+            <div className="p-16 flex justify-center items-center">
+              <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/20">
-                    <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-wider">
-                      User Details
-                    </th>
-                    <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-wider">
-                      Contact
-                    </th>
-                    <th className="px-6 py-4 text-[10px] font-black text-zinc-400 uppercase tracking-wider text-right">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                  {filteredUsers.length > 0 ? (
-                    filteredUsers.map((user: any) => (
-                      <tr
-                        key={user.id}
-                        className="group hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-all duration-200"
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                              <User className="w-4 h-4" />
-                            </div>
-                            <span className="font-bold text-zinc-900 dark:text-white">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-zinc-50/50 dark:bg-zinc-800/20 border-b border-zinc-100 dark:border-zinc-800">
+                  <th className="px-8 py-5 text-[11px] font-black text-zinc-400 uppercase tracking-widest">
+                    User
+                  </th>
+                  <th className="px-8 py-5 text-[11px] font-black text-zinc-400 uppercase tracking-widest">
+                    Contact
+                  </th>
+                  <th className="px-8 py-5 text-[11px] font-black text-zinc-400 uppercase tracking-widest text-right">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-50 dark:divide-zinc-800/50">
+                {filteredUsers.length > 0 ? (
+                  filteredUsers.map((user: any) => (
+                    <tr
+                      key={user.id}
+                      className="group hover:bg-emerald-50/30 dark:hover:bg-emerald-900/5 transition-colors duration-300"
+                    >
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 group-hover:bg-emerald-100 group-hover:text-emerald-600 dark:group-hover:bg-emerald-900/40 dark:group-hover:text-emerald-400 transition-all">
+                            <User className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-zinc-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
                               {user.full_name}
-                            </span>
+                            </p>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 text-zinc-500 text-sm">
-                          <div className="flex items-center gap-2">
-                            <Mail className="w-3.5 h-3.5 text-zinc-400" />
-                            {user.email}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="inline-flex items-center gap-1">
-                            <button
-                              onClick={() => setSelectedUser(user)} // Trigger Modal
-                              className="p-2 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-zinc-400 transition-colors"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() =>
-                                setUserToDelete({
-                                  id: user.id,
-                                  name: user.full_name,
-                                })
-                              }
-                              className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-zinc-400 hover:text-red-600 transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="px-6 py-12 text-center text-zinc-400 text-sm"
-                      >
-                        No users found matching your search.
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-2.5 text-zinc-500 dark:text-zinc-400 text-sm">
+                          <Mail className="w-4 h-4 opacity-70" />
+                          {user.email}
+                        </div>
+                      </td>
+                      <td className="px-8 py-6 text-right">
+                        <div className="inline-flex items-center gap-2">
+                          <button
+                            onClick={() => setSelectedUser(user)}
+                            className="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-500 hover:text-emerald-600 transition-all"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() =>
+                              setUserToDelete({
+                                id: user.id,
+                                name: user.full_name,
+                              })
+                            }
+                            className="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-zinc-500 hover:text-red-600 transition-all"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={3}
+                      className="px-8 py-16 text-center text-zinc-400"
+                    >
+                      No users found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           )}
         </div>
       </div>

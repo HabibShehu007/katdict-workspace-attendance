@@ -1,4 +1,3 @@
-// components/admin_components/AdminHistoryDetailsModal.tsx
 import { AnimatePresence, motion } from "framer-motion";
 import {
   X,
@@ -12,16 +11,14 @@ import {
   ExternalLink,
   User,
 } from "lucide-react";
-import type { WorkspaceHistoryItem } from "../../../context/AuthContext";
-
-export interface AdminLogItem extends WorkspaceHistoryItem {
-  user_name?: string;
-}
+// Import your centralized type
+import { type AdminLogItem } from "../../types/admin.types";
 
 export interface AdminHistoryDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  log: AdminLogItem | null;
+  // Use the central type directly
+  log: (AdminLogItem & { day_name?: string; formatted_date?: string }) | null;
 }
 
 export default function AdminHistoryDetailsModal({
@@ -31,7 +28,6 @@ export default function AdminHistoryDetailsModal({
 }: AdminHistoryDetailsModalProps) {
   if (!isOpen || !log) return null;
 
-  // Helper used to format time correctly
   const formatTime = (timeString: string) => {
     try {
       const date = new Date(timeString);
@@ -68,7 +64,7 @@ export default function AdminHistoryDetailsModal({
               <div className="flex items-center gap-2 text-zinc-900 dark:text-white">
                 <Calendar className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span className="text-xs font-black tracking-wide uppercase">
-                  {log.day_name} — Summary
+                  {log.day_name || "Daily"} — Summary
                 </span>
               </div>
               {log.user_name && (
