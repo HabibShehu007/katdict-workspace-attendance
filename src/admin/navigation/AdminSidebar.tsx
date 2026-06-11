@@ -4,7 +4,6 @@ import {
   Users,
   FileClock,
   LogOut,
-  Settings,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -28,7 +27,6 @@ export default function AdminSidebar({
     },
     { name: "User Management", path: "/admin/users", icon: Users },
     { name: "System Logs", path: "/admin/history", icon: FileClock },
-    { name: "System Config", path: "/admin/settings", icon: Settings },
   ];
 
   return (
@@ -92,7 +90,7 @@ export default function AdminSidebar({
         {/* Updated: Badge background adapts to theme */}
         <div className="px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-500">
           <ShieldCheck className="w-3 h-3" />
-          God Mode Active
+          Admin Access
         </div>
 
         <button
