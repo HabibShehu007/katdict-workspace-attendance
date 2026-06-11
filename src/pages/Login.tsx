@@ -61,14 +61,14 @@ export default function Login() {
 
         <div className="relative z-10 max-w-sm space-y-3">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-widest">
-            <MapPin className="w-3 h-3" /> Secure Gateway
+            <MapPin className="w-3 h-3" /> Location Awareness Required
           </div>
           <h2 className="text-3xl font-extrabold text-white tracking-tight">
             Welcome Back to the Workspace.
           </h2>
           <p className="text-sm text-zinc-400 leading-relaxed">
-            Log in to monitor your active projects, submit logs, and manage
-            configuration protocols seamlessly.
+            Log in to manage your projects, submit logs, and collaborate with
+            other professionals."
           </p>
         </div>
       </div>
