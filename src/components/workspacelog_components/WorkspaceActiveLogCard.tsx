@@ -8,6 +8,7 @@ import {
   GitBranch,
   Layers,
   ExternalLink,
+  AlertCircle,
 } from "lucide-react";
 
 import type { WorkspaceHistoryItem } from "../../types/auth.types";
@@ -21,32 +22,34 @@ export default function WorkspaceActiveLogCard({
   logData,
   onModifyClick,
 }: WorkspaceActiveLogCardProps) {
-  // 1. Safe Data Mapping
-  // We treat logData as 'any' via 'd' to allow accessing fields not in the strict interface
-
-  console.log("FULL LOG DATA OBJECT:", JSON.stringify(logData, null, 2));
   const d = logData as any;
 
-  // Diagnostic: Uncomment the line below to see exactly what keys exist in your data
-  // console.log("LogData Debug:", d);
+  // 1. Drizzle-aware data extraction (Handling JSONB structure)
+  const workData = d.workData || {};
 
-  const title = d.project_title || d.title || "Untitled Project";
-  const desc = d.project_description || d.desc || "";
-  const techStacks = d.tech_stacks || d.stacks || [];
+  const title =
+    d.projectTitle || workData.title || d.title || "Untitled Project";
+  const desc = d.projectDescription || workData.desc || d.desc || "";
+  const techStacks = workData.stacks || d.stacks || [];
 
-  // Map resources by checking common key variations
-  const githubUrl = d.github_url || d.githubUrl || d.github_repo;
-  const liveUrl = d.live_preview_url || d.liveUrl || d.live_url;
-  const uiUrl = d.ui_reference_url || d.uiUrl || d.ui_url;
+  const githubUrl = workData.githubUrl || d.githubUrl || d.github_url;
+  const liveUrl = workData.liveUrl || d.liveUrl || d.live_url;
+  const uiUrl = workData.uiUrl || d.uiUrl || d.ui_url;
 
-  const dayName = d.day_name || "Daily Log";
+  const dayName = d.dayName || d.day_name || "Daily Log";
+  const isLate = d.isLate === true;
 
-  // Explicitly checking variations for arrival time
-  const arrivalTime = d.arrival_time || d.arrivalTime || d.arrival || "--:--";
+  // 2. Humanize Time Utility
+  const formatTime = (timeInput: string | undefined) => {
+    if (!timeInput) return "--:--";
+    const date = new Date(timeInput);
+    return !isNaN(date.getTime())
+      ? date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      : timeInput;
+  };
 
-  // Role mapping with safety
-  const roleRaw = d.role || "web_development";
-  const roleDisplay = roleRaw.replace("_", " ");
+  const arrivalTime = formatTime(d.arrivalTime || d.createdAt);
+  const roleDisplay = (d.role || "web_development").replace("_", " ");
 
   return (
     <motion.div
@@ -120,6 +123,24 @@ export default function WorkspaceActiveLogCard({
                 </div>
                 <span className="text-[10px] font-black text-zinc-900 dark:text-zinc-100">
                   {arrivalTime}
+                </span>
+              </div>
+
+              <div
+                className={`flex items-center justify-between p-3.5 border rounded-xl ${isLate ? "bg-red-50/50 border-red-100" : "bg-emerald-50/50 border-emerald-100"}`}
+              >
+                <div className="flex items-center gap-2">
+                  <AlertCircle
+                    className={`w-4 h-4 ${isLate ? "text-red-500" : "text-emerald-500"}`}
+                  />
+                  <span className="text-xs font-bold text-zinc-600">
+                    Status
+                  </span>
+                </div>
+                <span
+                  className={`text-[10px] font-black uppercase ${isLate ? "text-red-600" : "text-emerald-600"}`}
+                >
+                  {isLate ? "Late" : "On Time"}
                 </span>
               </div>
             </div>

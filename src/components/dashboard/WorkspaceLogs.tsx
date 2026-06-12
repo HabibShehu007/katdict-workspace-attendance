@@ -41,14 +41,18 @@ export default function WorkspaceLogs({
   hasAttendance,
 }: WorkspaceLogsProps) {
   const { user, BYPASS_TIME_GUARD } = useAuth();
+
   const {
     isAttendanceLoading,
     logData,
+    isLogComplete,
     isSubmitting,
     error,
     saveAttendanceOnly,
     submitWorkLog,
   } = useWorkspaceLog(dayName);
+
+  console.log("Debug WorkspaceLogs:", { isLogComplete, logData });
 
   const [showOptionsModal, setShowOptionsModal] = useState(false);
   const [showLogFormModal, setShowLogFormModal] = useState(false);
@@ -57,7 +61,6 @@ export default function WorkspaceLogs({
     !BYPASS_TIME_GUARD && new Date().getHours() >= 12;
   const isClosed = isPastNoonCutoff();
 
-  // Cast logData to our type
   const typedLogData = logData as WorkspaceHistoryItem | null;
 
   const handleSelectAttendanceOnly = async () => {
@@ -93,11 +96,7 @@ export default function WorkspaceLogs({
       <AnimatePresence>
         {isSubmitting && (
           <LoadingOverlay
-            text={
-              hasAttendance
-                ? `Updating logs for ${dayName}...`
-                : `Marking attendance for ${dayName}...`
-            }
+            text={hasAttendance ? `Updating logs...` : `Marking attendance...`}
           />
         )}
       </AnimatePresence>
@@ -116,6 +115,7 @@ export default function WorkspaceLogs({
           />
         ) : (
           <div className="w-full space-y-6">
+            {/* Status Header */}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -127,54 +127,45 @@ export default function WorkspaceLogs({
                 </div>
                 <div>
                   <span className="text-xs font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest block">
-                    Workspace Status Active
+                    Attendance Verified
                   </span>
                   <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200 mt-0.5">
-                    Your presence for{" "}
-                    <span className="text-emerald-600 dark:text-emerald-400">
-                      {dayName}
-                    </span>{" "}
-                    is verified and locked.
+                    Presence for{" "}
+                    <span className="text-emerald-600">{dayName}</span> is
+                    locked.
                   </p>
                 </div>
               </div>
-              {!logData && (
-                <button
-                  disabled={isSubmitting}
-                  onClick={handleOpenLogModalClick}
-                  className={`flex items-center gap-2 text-xs font-black border px-5 py-3 rounded-xl transition-all ${isClosed ? "bg-zinc-100 text-zinc-400 cursor-not-allowed" : "bg-white hover:bg-zinc-50"}`}
-                >
-                  <FileEdit className="w-4 h-4" />
-                  <span>
-                    {isSubmitting
-                      ? "Saving..."
-                      : isClosed
-                        ? "Submission Closed"
-                        : "Complete Daily Logs"}
-                  </span>
-                </button>
-              )}
             </motion.div>
 
-            {typedLogData ? (
+            {/* Content Switcher: Pending vs Active */}
+            {isLogComplete && typedLogData?.title ? (
               <WorkspaceActiveLogCard
                 onModifyClick={handleOpenLogModalClick}
-                // Cast to 'any' to bridge the local type vs component interface requirement
-                logData={typedLogData as any}
+                logData={typedLogData}
               />
             ) : (
-              <div className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-3xl flex justify-between gap-4">
-                <p className="text-sm text-zinc-500">
-                  You haven't submitted your task metrics details yet.
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="w-full p-8 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl bg-zinc-50 dark:bg-zinc-900/50 text-center flex flex-col items-center"
+              >
+                <FileEdit className="w-10 h-10 text-emerald-500 mb-4" />
+                <h3 className="text-lg font-black text-zinc-900 dark:text-white">
+                  Logs Pending
+                </h3>
+                <p className="text-sm text-zinc-500 mt-2 mb-6 max-w-sm">
+                  Attendance is marked, but your progress metrics for {dayName}{" "}
+                  are still missing.
                 </p>
                 <button
                   disabled={isSubmitting || isClosed}
                   onClick={handleOpenLogModalClick}
-                  className="bg-emerald-600 text-white px-5 py-3 rounded-xl font-black text-xs hover:bg-emerald-500"
+                  className="bg-emerald-600 text-white px-8 py-3 rounded-xl font-black text-xs hover:bg-emerald-500 transition-colors"
                 >
-                  Add Progress Logs Now
+                  {isClosed ? "Submission Closed" : "Submit Progress Logs"}
                 </button>
-              </div>
+              </motion.div>
             )}
           </div>
         )}
@@ -186,7 +177,6 @@ export default function WorkspaceLogs({
         onAttendanceOnly={handleSelectAttendanceOnly}
         onBoth={handleSelectBoth}
       />
-
       <WorkspaceLogModal
         isOpen={showLogFormModal}
         isSubmitting={isSubmitting}

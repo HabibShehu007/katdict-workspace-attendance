@@ -1,7 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { db } from "../../src/db/";
 import { attendanceLogs } from "../../src/db/schema";
-import { eq, and } from "drizzle-orm";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST")
@@ -12,8 +11,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const uid = Number(userId);
     const logDate = new Date(timestamp).toISOString().split("T")[0];
 
-    // Using Drizzle to perform an Upsert (Insert or Update on conflict)
-    // This is clean, readable, and prevents SQL injection by default.
     const [result] = await db
       .insert(attendanceLogs)
       .values({
@@ -23,7 +20,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         arrivalTime: new Date(timestamp),
         isLate: isLate,
         isOnSite: true,
-        isLogEmpty: true, // Initially empty until they submit their work log
+        isLogEmpty: true,
       })
       .onConflictDoUpdate({
         target: [attendanceLogs.userId, attendanceLogs.logDate],
@@ -33,7 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           updatedAt: new Date(),
         },
       })
-      .returning(); // Returns the inserted/updated row
+      .returning();
 
     return res.status(200).json({ success: true, data: result });
   } catch (error: any) {

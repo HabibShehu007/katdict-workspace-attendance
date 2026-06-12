@@ -22,30 +22,31 @@ export function useAuthLogic() {
   const [historyLogs, setHistoryLogs] = useState<WorkspaceHistoryItem[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState<boolean>(false);
 
-  // Helper for UI components
   const isAdmin = user?.role === "admin";
 
-  const refreshAttendance = useCallback(async (userId: string) => {
+  const refreshAttendance = useCallback(async (userId: number) => {
     setIsAttendanceLoading(true);
     try {
       const response = await fetch(`/api/workspace/status?userId=${userId}`);
       if (response.ok) {
         const { data } = await response.json();
         if (data) {
+          // Update streaks in user state
           setUser((prev) =>
             prev
               ? {
                   ...prev,
-                  current_streak: data.current_streak,
-                  highest_streak: data.highest_streak,
+                  currentStreak: data.current_streak,
+                  highestStreak: data.highest_streak,
                 }
               : null,
           );
+
           const exists = !!data.attendance_exists;
           setAttendance({
             hasAttendance: exists,
             isLogComplete: exists ? !data.is_log_empty : false,
-            data: exists ? data : null,
+            data: exists ? data : null, // data now contains the nested JSONB workData
           });
           return true;
         }
@@ -68,28 +69,30 @@ export function useAuthLogic() {
       force = false,
     ) => {
       if (range === "current_week" && historyLogs.length > 0 && !force) return;
+
       const storedUser = localStorage.getItem("katdict_user");
-      let currentUserId =
+      const userId =
         user?.id || (storedUser ? JSON.parse(storedUser).id : null);
-      if (!currentUserId) return;
+      if (!userId) return;
 
       setIsHistoryLoading(true);
       try {
-        let url = `/api/workspace/history?userId=${currentUserId}&range=${range}`;
+        let url = `/api/workspace/history?userId=${userId}&range=${range}`;
         if (range === "custom" && startDate && endDate)
           url += `&startDate=${startDate}&endDate=${endDate}`;
+
         const response = await fetch(url);
         if (response.ok) {
           const result = await response.json();
-          if (result.success) setHistoryLogs(result.data);
+          if (result.success) setHistoryLogs(result.data); // result.data now contains full objects with JSONB
         }
       } catch (err) {
-        console.error("History engine tracking fetch failed:", err);
+        console.error("History engine fetch failed:", err);
       } finally {
         setIsHistoryLoading(false);
       }
     },
-    [user?.id],
+    [user?.id, historyLogs.length],
   );
 
   useEffect(() => {
@@ -100,24 +103,22 @@ export function useAuthLogic() {
       setUser(parsedUser);
       refreshAttendance(parsedUser.id);
 
-      // Apply Admin override logic on initial load
-      if (parsedUser.role === "admin") {
-        setIsWithinWorkspace(true);
-      } else {
-        setIsWithinWorkspace(BYPASS_LOCATION_GUARD || storedGeo === "true");
-      }
+      const status =
+        parsedUser.role === "admin"
+          ? true
+          : BYPASS_LOCATION_GUARD || storedGeo === "true";
+      setIsWithinWorkspace(status);
     }
     setIsLoading(false);
   }, [refreshAttendance]);
 
   const loginSession = (userData: UserProfile, isWithin: boolean) => {
     setUser(userData);
-    // Force true for Admins, otherwise use bypass or actual location
-    const finalLocationStatus =
+    const finalStatus =
       userData.role === "admin" ? true : BYPASS_LOCATION_GUARD || isWithin;
-    setIsWithinWorkspace(finalLocationStatus);
+    setIsWithinWorkspace(finalStatus);
     localStorage.setItem("katdict_user", JSON.stringify(userData));
-    localStorage.setItem("katdict_geo_status", String(finalLocationStatus));
+    localStorage.setItem("katdict_geo_status", String(finalStatus));
     refreshAttendance(userData.id);
   };
 

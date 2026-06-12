@@ -23,7 +23,19 @@ export function useProfileLogic(
         const result = await response.json();
 
         if (result.success) {
-          const updatedUser = { ...user, ...result.data };
+          // Map DB response keys (snake_case) to Frontend state (camelCase)
+          const updatedUser: UserProfile = {
+            ...user,
+            ...result.data,
+            fullName: result.data.full_name || result.data.fullName,
+            avatarUrl: result.data.avatar_url || result.data.avatarUrl,
+            currentStreak:
+              result.data.current_streak || result.data.currentStreak,
+            highestStreak:
+              result.data.highest_streak || result.data.highestStreak,
+            createdAt: result.data.created_at || result.data.createdAt,
+          };
+
           setUser(updatedUser);
           localStorage.setItem("katdict_user", JSON.stringify(updatedUser));
           toast.success("Profile updated successfully!");
@@ -48,17 +60,14 @@ export function useProfileLogic(
       toast.loading("Uploading avatar...");
 
       try {
-        const response = await fetch(
-          `/api/user/upload-avatar?userId=${user.id}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": file.type,
-              "x-vercel-blob-filename": file.name,
-            },
-            body: file, // Raw file stream
+        // Updated endpoint name to match our API file
+        const response = await fetch(`/api/user/avatar?userId=${user.id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": file.type,
           },
-        );
+          body: file,
+        });
 
         const result = await response.json();
 

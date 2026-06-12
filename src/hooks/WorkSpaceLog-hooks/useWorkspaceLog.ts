@@ -5,10 +5,12 @@ import { useAuth } from "../../context/AuthContext";
 export interface SubmittedLog {
   title: string;
   desc: string;
-  stacks: string[];
+  stacks?: string[]; // Made optional to support designers
+  tools?: string[]; // Added for designers
   uiUrl?: string;
-  githubUrl: string;
+  githubUrl?: string;
   liveUrl?: string;
+  assetsUrl?: string;
 }
 
 export function useWorkspaceLog(dayName: string) {
@@ -24,12 +26,11 @@ export function useWorkspaceLog(dayName: string) {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 1. Save Attendance Only
   const saveAttendanceOnly = useCallback(async () => {
     if (!user) return false;
 
     setIsSubmitting(true);
-    setError(null); // Clear previous errors
+    setError(null);
 
     try {
       const now = new Date();
@@ -45,92 +46,79 @@ export function useWorkspaceLog(dayName: string) {
           userId: user.id,
           day: dayName,
           timestamp: now.toISOString(),
-          isLate: isLate,
+          isLate,
         }),
       });
 
       if (!response.ok) throw new Error("Server rejected attendance.");
 
       await refreshAttendance();
-      await fetchHistory("current_week", undefined, undefined, true);
+      // FIX: fetchHistory only accepts 3 arguments
+      await fetchHistory("current_week");
 
-      if (isLate) {
-        toast.warning(`Attendance marked late for ${dayName}.`);
-      } else {
-        toast.success(`Excellent timing! Verified for ${dayName}.`);
-      }
+      toast.success(
+        isLate
+          ? `Attendance marked late for ${dayName}.`
+          : `Verified for ${dayName}.`,
+      );
       return true;
     } catch (err: any) {
-      setError(err.message || "Attendance failed.");
-      toast.error(err.message || "Attendance failed.");
+      setError(err.message);
+      toast.error(err.message);
       return false;
     } finally {
-      setIsSubmitting(false); // Overlay will disappear here
+      setIsSubmitting(false);
     }
   }, [user, dayName, refreshAttendance, fetchHistory, BYPASS_TIME_GUARD]);
 
-  // 2. Submit Daily Progress Logs
   const submitWorkLog = useCallback(
     async (data: SubmittedLog) => {
       if (!user) return false;
 
       setIsSubmitting(true);
-      setError(null); // Clear previous errors
+      setError(null);
 
       try {
-        const now = new Date();
-        if (!BYPASS_TIME_GUARD && now.getHours() >= 12) {
-          toast.error(
-            "Submission closed! Logs cannot be submitted or modified after 12:00 PM.",
-          );
-          return false;
-        }
-
         const response = await fetch("/api/workspace/logs", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: user.id,
-            day: dayName,
-            ...data,
-          }),
+          body: JSON.stringify({ userId: user.id, day: dayName, ...data }),
         });
 
         if (!response.ok) throw new Error("Server rejected log write.");
 
         await refreshAttendance();
-        await fetchHistory("current_week", undefined, undefined, true);
+        await fetchHistory("current_week");
 
         toast.success(`Progress logs for ${dayName} saved successfully!`);
         return true;
       } catch (err: any) {
-        setError(err.message || "Failed to submit logs.");
-        toast.error(err.message || "Failed to submit logs.");
+        setError(err.message);
+        toast.error(err.message);
         return false;
       } finally {
-        setIsSubmitting(false); // Overlay will disappear here
+        setIsSubmitting(false);
       }
     },
-    [user, dayName, refreshAttendance, fetchHistory, BYPASS_TIME_GUARD],
+    [user, dayName, refreshAttendance, fetchHistory],
   );
 
   return {
     hasAttendance: attendance.hasAttendance,
+    isLogComplete: attendance.isLogComplete, // Expose this status to the UI
     isAttendanceLoading,
-    logData: attendance.isLogComplete
+    logData: attendance.data
       ? {
-          // Map DB column names to UI keys
-          title: attendance.data?.project_title || "Untitled",
-          desc: attendance.data?.project_description || "",
-          stacks: attendance.data?.tech_stacks || [],
-          uiUrl: attendance.data?.ui_reference_url || "",
-          githubUrl: attendance.data?.github_url || "",
-          liveUrl: attendance.data?.live_preview_url || "",
-
-          // CRITICAL: These were missing from your hook's return object
-          arrival_time: attendance.data?.arrival_time || "--:--",
-          day_name: attendance.data?.day_name || "Daily Log",
-          role: attendance.data?.role || "web_development",
+          title: attendance.data.projectTitle || "",
+          desc: attendance.data.projectDescription || "",
+          stacks: attendance.data.workData?.stacks || [],
+          tools: attendance.data.workData?.tools || [],
+          uiUrl: attendance.data.workData?.uiUrl || "",
+          githubUrl: attendance.data.workData?.githubUrl || "",
+          liveUrl: attendance.data.workData?.liveUrl || "",
+          assetsUrl: attendance.data.workData?.assetsUrl || "",
+          dayName: attendance.data.dayName,
+          createdAt: attendance.data.createdAt,
         }
       : null,
     isSubmitting,

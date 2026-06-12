@@ -41,7 +41,8 @@ export const attendanceLogs = pgTable("daily_attendance_logs", {
   projectDescription: text("project_description"),
 
   // THE DYNAMIC ENGINE: Polymorphic storage for role-specific tools, stacks, or references
-  workData: jsonb("work_data"),
+
+  workData: jsonb("work_data").default({}).notNull(),
 
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

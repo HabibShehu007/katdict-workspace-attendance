@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useState, useCallback } from "react";
 
 interface UseAttendanceOptionModalProps {
   onClose: () => void;
@@ -11,18 +11,27 @@ export function useAttendanceOptionModal({
   onAttendanceOnlySelected,
   onBothSelected,
 }: UseAttendanceOptionModalProps) {
-  const handleAttendanceOnlyAction = useCallback(() => {
-    onAttendanceOnlySelected(); // Triggers the backend save
-    onClose(); // Shuts down the modal overlay
-  }, [onAttendanceOnlySelected, onClose]);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleAttendanceOnlyAction = useCallback(async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+
+    await onAttendanceOnlySelected();
+
+    setIsProcessing(false);
+    onClose();
+  }, [onAttendanceOnlySelected, onClose, isProcessing]);
 
   const handleBothAction = useCallback(() => {
-    onBothSelected(); // Directs the UI to pop up the log form details
-    onClose(); // Shuts down the option modal overlay
+    // This doesn't need to be async because it just opens another modal/UI
+    onBothSelected();
+    onClose();
   }, [onBothSelected, onClose]);
 
   return {
     handleAttendanceOnlyAction,
     handleBothAction,
+    isProcessing,
   };
 }

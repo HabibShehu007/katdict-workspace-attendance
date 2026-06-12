@@ -16,7 +16,7 @@ export default function AttendanceOptionModal({
   onBoth,
 }: AttendanceOptionModalProps) {
   // Pull isolated logic cleanly into the component view
-  const { handleAttendanceOnlyAction, handleBothAction } =
+  const { handleAttendanceOnlyAction, handleBothAction, isProcessing } =
     useAttendanceOptionModal({
       onClose,
       onAttendanceOnlySelected: onAttendanceOnly,
@@ -65,19 +65,23 @@ export default function AttendanceOptionModal({
             <div className="space-y-3">
               {/* Option 1: Attendance Only */}
               <button
+                disabled={isProcessing}
                 onClick={handleAttendanceOnlyAction}
-                className="w-full flex items-start gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500 dark:hover:border-emerald-500 bg-zinc-50/50 dark:bg-zinc-800/30 text-left transition-all group cursor-pointer"
+                className="w-full flex items-start gap-4 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500 dark:hover:border-emerald-500 bg-zinc-50/50 dark:bg-zinc-800/30 text-left transition-all group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="p-2.5 bg-amber-500/10 text-amber-500 rounded-lg group-hover:bg-amber-500/20 shrink-0">
                   <Clock className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="block text-sm font-bold text-zinc-900 dark:text-white">
-                    Save Attendance Only
+                    {isProcessing ? "Saving..." : "Save Attendance Only"}
                   </span>
                   <span className="block text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                    Secure your arrival time and punctuality score now. You can
-                    add your task logs later before 12:00 PM.
+                    Secure your arrival time and punctuality score now.
+                    {/* Dynamic text based on current time */}
+                    {new Date().getHours() >= 12
+                      ? " Note: The log submission window for today has closed."
+                      : " You can add your task logs later before 12:00 PM."}
                   </span>
                 </div>
               </button>

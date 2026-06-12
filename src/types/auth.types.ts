@@ -1,87 +1,85 @@
 // types/auth.types.ts
 
+// 1. Core Roles
 export type UserRole = "admin" | "web_development" | "ui_ux_design";
 
+// 2. Base Profile
 export interface UserProfile {
-  id: string;
+  id: number; // Changed to number to match Drizzle serial ID
   fullName: string;
   email: string;
-  current_streak?: number;
-  highest_streak?: number;
+  currentStreak: number;
+  highestStreak: number;
   createdAt: string;
-  role: UserRole; // Enforced role
-  avatarUrl?: string;
-  bio?: string;
+  role: UserRole;
+  avatarUrl?: string | null;
+  bio?: string | null;
+}
+
+export interface WorkData {
+  // Web Dev fields
+  stacks?: string[];
+  githubUrl?: string;
+  liveUrl?: string;
+  uiUrl?: string;
+  // UI/UX fields
+  tools?: string[];
+  assetsUrl?: string;
+  // Flexible access for any extra metadata
+  [key: string]: any;
+}
+
+// 4. History Logs
+// We match this to the actual structure returned by the database
+export interface WorkspaceHistoryItem {
+  id: number;
+  userId: number;
+  dayName: string;
+  logDate: string; // The formatted date
+  projectTitle: string;
+  projectDescription: string;
+  isLogEmpty: boolean;
+  workData: WorkData; // Here is our JSONB dynamic field
+  createdAt: string;
+  title?: string;
+  desc?: string;
+  stacks?: string[];
+  tools?: string[];
+  uiUrl?: string;
+  githubUrl?: string;
+  liveUrl?: string;
+  updatedAt: string;
 }
 
 export interface AttendanceStatus {
   hasAttendance: boolean;
   isLogComplete: boolean;
-  data: any | null;
+  data: WorkspaceHistoryItem | null;
 }
 
-// 1. Base interface containing every field shared by ALL roles
-interface BaseHistoryItem {
-  id: number;
-  user_id: number;
-  day_name: string;
-  formatted_date: string;
-  arrival_time: string;
-  is_late: boolean;
-  is_on_site: boolean;
-  project_title: string;
-  project_description: string;
-  is_log_empty: boolean;
-  ui_reference_url?: string; // Shared by everyone
-}
-
-// 2. Developer-specific variant
-interface WebDevHistory extends BaseHistoryItem {
-  role: "web_development";
-  tech_stacks: string[]; // Preserved from your original definition
-  github_url?: string;
-  live_preview_url?: string;
-}
-
-// 3. Designer-specific variant
-interface DesignHistory extends BaseHistoryItem {
-  role: "ui_ux_design";
-  // You can add design-specific arrays here
-  design_tools?: string[];
-  asset_drive_url?: string;
-}
-
-// 4. The union type used by your history logs
-export type WorkspaceHistoryItem = WebDevHistory | DesignHistory;
-
+// 5. Auth Context (Your global state controller)
 export interface AuthContextType {
-  // Auth & Session
   user: UserProfile | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   loginSession: (userData: UserProfile, isWithin: boolean) => void;
   logoutSession: () => void;
-  setUser: (user: UserProfile | null) => void; // Added for internal state syncing
+  setUser: (user: UserProfile | null) => void;
 
-  // Profile Management
   updateProfile: (data: Partial<UserProfile>) => Promise<boolean>;
   isUpdating: boolean;
-
-  // Attendance & Workspace
+  BYPASS_TIME_GUARD: boolean;
+  BYPASS_LOCATION_GUARD: boolean;
   isWithinWorkspace: boolean;
   attendance: AttendanceStatus;
   isAttendanceLoading: boolean;
   refreshAttendance: () => Promise<boolean>;
-  BYPASS_TIME_GUARD: boolean;
-  BYPASS_LOCATION_GUARD: boolean;
 
-  // History Tracking
   historyLogs: WorkspaceHistoryItem[];
   isHistoryLoading: boolean;
   fetchHistory: (
     range?: string,
     startDate?: string,
     endDate?: string,
-    force?: boolean,
   ) => Promise<void>;
 }
