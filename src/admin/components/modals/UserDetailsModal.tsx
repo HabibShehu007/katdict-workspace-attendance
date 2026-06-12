@@ -1,11 +1,11 @@
-// src/admin/components/modals/UserDetailsModal.tsx
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Calendar, Flame, Trophy, Mail, User, BookOpen } from "lucide-react";
+import type { UserProfile } from "../../../types/auth.types";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  user: any;
+  user: UserProfile | null;
 }
 
 export default function UserDetailsModal({ isOpen, onClose, user }: Props) {
@@ -31,32 +31,36 @@ export default function UserDetailsModal({ isOpen, onClose, user }: Props) {
           >
             <button
               onClick={onClose}
-              className="absolute top-6 right-6 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+              className="absolute top-6 right-6 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
             >
-              <X />
+              <X className="w-5 h-5" />
             </button>
-
+            {/* Header Section */}
             <div className="flex items-center gap-4 mb-8">
               <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 text-2xl font-black">
-                {user.full_name.charAt(0)}
+                {/* Safely get the first letter, default to '?' if undefined */}
+                {user?.fullName?.charAt(0)?.toUpperCase() || "?"}
               </div>
               <div>
                 <h2 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-2">
                   <User className="w-5 h-5 text-zinc-400" />
-                  {user.full_name}
+                  {user?.fullName || "Unnamed User"}
                 </h2>
                 <p className="text-zinc-500 text-sm flex items-center gap-2 mt-1">
-                  <Mail className="w-3 h-3" /> {user.email}
+                  <Mail className="w-3 h-3" />{" "}
+                  {user?.email || "No email provided"}
                 </p>
               </div>
             </div>
+
+            {/* Metrics Section */}
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="p-4 bg-orange-50 dark:bg-orange-900/10 rounded-2xl border border-orange-100 dark:border-orange-900/20">
                 <p className="text-[10px] uppercase font-bold text-orange-600 flex items-center gap-2">
                   <Flame className="w-3 h-3" /> Current Streak
                 </p>
                 <p className="text-2xl font-black text-orange-900 dark:text-orange-500">
-                  {user.current_streak}
+                  {user.current_streak ?? 0}
                 </p>
               </div>
               <div className="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-100 dark:border-emerald-900/20">
@@ -64,16 +68,18 @@ export default function UserDetailsModal({ isOpen, onClose, user }: Props) {
                   <Trophy className="w-3 h-3" /> Highest Streak
                 </p>
                 <p className="text-2xl font-black text-emerald-900 dark:text-emerald-500">
-                  {user.highest_streak}
+                  {user.highest_streak ?? 0}
                 </p>
               </div>
             </div>
+
+            {/* Footer Details */}
             <div className="space-y-4 text-sm text-zinc-600 dark:text-zinc-400">
               <p className="flex items-center gap-3">
                 <Calendar className="w-4 h-4 text-zinc-400" /> Joined:{" "}
-                {new Date(user.created_at).toLocaleDateString()}
+                {new Date(user.createdAt).toLocaleDateString()}
               </p>
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-2xl">
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-800">
                 <p className="text-[10px] uppercase font-bold text-zinc-400 mb-2 flex items-center gap-2">
                   <BookOpen className="w-3 h-3" /> Bio
                 </p>

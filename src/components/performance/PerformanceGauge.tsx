@@ -6,9 +6,9 @@ interface GaugeProps {
 }
 
 export function PerformanceGauge({ value, isLocked }: GaugeProps) {
-  const percentage = value ?? 0;
+  const percentage = Math.min(Math.max(value ?? 0, 0), 100);
 
-  // Now being used to color the percentage text dynamically
+  // Perfectly aligned with the conic-gradient stops
   const getColor = (v: number) => {
     if (v < 40) return "text-rose-500";
     if (v < 75) return "text-amber-500";
@@ -28,25 +28,31 @@ export function PerformanceGauge({ value, isLocked }: GaugeProps) {
           style={{ clipPath: "polygon(0% 50%, 100% 50%, 100% 100%, 0% 100%)" }}
         />
 
-        {/* The Progress Fill */}
+        {/* The Progress Fill:
+           - Red: 0% to 40% (0 to 72deg)
+           - Amber: 40% to 75% (72deg to 135deg)
+           - Emerald: 75% to 100% (135deg to 180deg)
+        */}
         <motion.div
           className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px]"
           style={{
-            background:
-              "conic-gradient(from 180deg, #f43f5e 0deg, #f59e0b 90deg, #10b981 180deg)",
+            background: `conic-gradient(from 180deg, 
+              #f43f5e 72deg, 
+              #f59e0b 72deg 135deg, 
+              #10b981 135deg 180deg
+            )`,
             clipPath: "polygon(0% 50%, 100% 50%, 100% 100%, 0% 100%)",
             border: "none",
           }}
-          initial={{ opacity: 0, scale: 0.8 }}
+          initial={{ opacity: 0, rotate: 0 }}
           animate={{
-            opacity: isLocked ? 0 : 1,
-            scale: 1,
+            opacity: isLocked ? 0.3 : 1,
             rotate: isLocked ? 0 : percentage * 1.8,
           }}
           transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
         />
 
-        {/* Center Text - Now using getColor */}
+        {/* Center Text */}
         <div className="absolute bottom-0 w-full text-center">
           <span
             className={`text-4xl font-black tabular-nums ${isLocked ? "text-zinc-400" : getColor(percentage)}`}

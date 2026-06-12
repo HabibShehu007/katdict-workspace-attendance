@@ -1,85 +1,70 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { neon } from "@neondatabase/serverless";
+import { db } from "../../src/db/";
+import { users } from "../../src/db/schema";
+import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { getWelcomeEmail } from "./welcomeTemplate.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed. Use POST." });
+    return res.status(405).json({ error: "Method not allowed." });
   }
-
-  const dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl) {
-    return res.status(500).json({ error: "Database configuration error." });
-  }
-
-  const sql = neon(dbUrl);
 
   try {
-    // 1. Destructure 'role' from the request body
     const { fullName, email, password, role } = req.body;
 
-    // 2. Add 'role' to the validation check
     if (!fullName || !email || !password || !role) {
-      return res
-        .status(400)
-        .json({ error: "All profile fields and role are required." });
+      return res.status(400).json({ error: "All fields are required." });
     }
 
-    const existingUser = await sql`
-      SELECT id FROM users WHERE email = ${email.toLowerCase().trim()}
-    `;
-    if (existingUser.length > 0) {
+    const emailLower = email.toLowerCase().trim();
+
+    // 1. Check for existing user
+    const [existingUser] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, emailLower));
+
+    if (existingUser) {
       return res.status(409).json({ error: "Email already registered." });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 3. Update the INSERT query to include the 'role' column
-    const [newUser] = await sql`
-      INSERT INTO users (full_name, email, password_hash, role)
-      VALUES (${fullName.trim()}, ${email.toLowerCase().trim()}, ${hashedPassword}, ${role})
-      RETURNING id, full_name, email, role, created_at;
-    `;
-    // 5. Trigger Brevo Email (Native Fetch)
-    const emailResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
+    // 2. Insert new user
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        fullName: fullName.trim(),
+        email: emailLower,
+        passwordHash: hashedPassword, // This works ONLY if schema.ts has passwordHash
+        role: role,
+      })
+      .returning({
+        id: users.id,
+        fullName: users.fullName,
+        email: users.email,
+        role: users.role,
+      });
+
+    // 3. Trigger Email with BOTH arguments
+    await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
         "api-key": process.env.BREVO_API_KEY!,
         "content-type": "application/json",
-        accept: "application/json",
       },
       body: JSON.stringify({
-        sender: {
-          name: "KATDICT Team",
-          email: process.env.BREVO_SENDER_EMAIL,
-        },
-        to: [{ email: newUser.email, name: newUser.full_name }],
+        sender: { name: "KATDICT Team", email: process.env.BREVO_SENDER_EMAIL },
+        to: [{ email: newUser.email, name: newUser.fullName }],
         subject: "Welcome to KATDICT WORKSPACE! 🚀",
-        htmlContent: getWelcomeEmail(newUser.full_name),
+        htmlContent: getWelcomeEmail(newUser.fullName, newUser.role), // Pass both here
       }),
     });
 
-    if (!emailResponse.ok) {
-      const errorData = await emailResponse.json();
-      console.error("Brevo API Error:", errorData);
-    } else {
-      console.log(`Welcome email successfully sent to ${newUser.email}`);
-    }
-
-    // 6. Return Success
-    return res.status(201).json({
-      success: true,
-      message: "Workspace account registered successfully.",
-      user: {
-        id: newUser.id,
-        fullName: newUser.full_name,
-        email: newUser.email,
-        role: newUser.role,
-      },
-    });
+    return res.status(201).json({ success: true, user: newUser });
   } catch (error: any) {
-    console.error("Signup/Email Error:", error);
+    console.error("Signup Error:", error);
     return res.status(500).json({ error: "Registration failed." });
   }
 }

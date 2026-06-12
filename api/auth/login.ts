@@ -1,5 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { neon } from "@neondatabase/serverless";
+import { db } from "../../src/db/";
+import { users } from "../../src/db/schema";
+import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 // Workspace location config
@@ -32,11 +34,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: "Method not allowed." });
   }
 
-  const dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl)
-    return res.status(500).json({ error: "Database configuration missing." });
-  const sql = neon(dbUrl);
-
   try {
     const { email, password, latitude, longitude } = req.body;
 
@@ -46,35 +43,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .json({ error: "Email and password are required." });
     }
 
-    const [user] =
-      await sql`SELECT * FROM users WHERE email = ${email.toLowerCase().trim()}`;
+    // 1. Fetch user using Drizzle
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email.toLowerCase().trim()));
 
-    // PASSWORD VERIFICATION LOGIC
-    let isPasswordValid = false;
-    if (user) {
-      if (user.role === "admin") {
-        // Allow plain-text comparison for admin
-        isPasswordValid = password === user.password_hash;
-      } else {
-        // Use bcrypt for standard users
-        isPasswordValid = await bcrypt.compare(password, user.password_hash);
-      }
-    }
+    // 2. Validate Password
+    const isPasswordValid = user
+      ? await bcrypt.compare(password, user.passwordHash ?? "")
+      : false;
 
     if (!user || !isPasswordValid) {
       return res.status(401).json({ error: "Invalid login credentials." });
     }
 
-    // Natural logging
-    console.log(`--- Login attempt for: ${email} ---`);
-
+    // 3. Location Check Logic
     let isWithinWorkspace = false;
-
-    // Admin Bypass Logic
-    if (user.role === "admin") {
-      isWithinWorkspace = true;
-      console.log(`System Admin ${email} detected. Skipping location check.`);
-    } else if (latitude !== undefined && longitude !== undefined) {
+    if (latitude !== undefined && longitude !== undefined) {
       const distance = calculateDistanceInMeters(
         Number(latitude),
         Number(longitude),
@@ -82,13 +68,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         WORKSPACE_LNG,
       );
       isWithinWorkspace = distance <= ALLOWED_RADIUS_METERS;
-      console.log(
-        `User ${email} is ${distance.toFixed(2)}m from the workspace. Access allowed: ${isWithinWorkspace}`,
-      );
-    } else {
-      console.log(
-        `No location data provided for user: ${email}. Access restricted.`,
-      );
     }
 
     return res.status(200).json({
@@ -99,11 +78,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       isWithinWorkspace,
       user: {
         id: user.id,
-        fullName: user.full_name,
+        fullName: user.fullName,
         email: user.email,
         role: user.role,
         bio: user.bio,
-        createdAt: user.created_at,
+        createdAt: user.createdAt,
       },
     });
   } catch (error) {

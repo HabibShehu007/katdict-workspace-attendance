@@ -1,139 +1,193 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Monitor,
-  Server,
-  Terminal,
-  Plus,
-  Check,
-  PenTool,
-  LayoutTemplate,
+  X,
+  Layers,
+  AlignLeft,
+  ImagePlus,
+  GitBranch,
+  ExternalLink,
 } from "lucide-react";
-import { useTechStackSelector } from "../../hooks/WorkSpaceLog-Components-hooks/useTechStackSelector";
-import type { TabType } from "../../hooks/WorkSpaceLog-Components-hooks/useTechStackSelector";
+import TechStackSelector from "./TechStackSelector";
+import { useWorkspaceLogModal } from "../../hooks/WorkSpaceLog-Components-hooks/useWorkspaceLogModal";
+import type { WorkspaceHistoryItem, UserRole } from "../../types/auth.types";
 
-interface TechStackSelectorProps {
-  userRole: "web_development" | "ui_ux_design";
-  selectedStacks: string[]; // This should be initialized as [] in the parent
-  onToggleStack: (stack: string) => void;
-  onAddCustomStack: (stack: string) => void;
-  customStacks: string[];
+interface WorkspaceLogModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: any) => void;
+  isSubmitting?: boolean;
+  initialData: WorkspaceHistoryItem | null;
+  userRole: UserRole;
 }
 
-export default function TechStackSelector({
+export default function WorkspaceLogModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  isSubmitting = false,
+  initialData,
   userRole,
-  selectedStacks = [], // Added default fallback here
-  onToggleStack,
-  onAddCustomStack,
-  customStacks = [], // Added default fallback here
-}: TechStackSelectorProps) {
+}: WorkspaceLogModalProps) {
   const {
-    activeTab,
-    setActiveTab,
-    customInput,
-    setCustomInput,
-    getDisplayOptions,
-    handleCustomSubmit,
-  } = useTechStackSelector({ userRole, customStacks, onAddCustomStack });
+    title,
+    setTitle,
+    desc,
+    setDesc,
+    selectedStacks,
+    customStacks,
+    uiUrl,
+    setUiUrl,
+    githubUrl,
+    setGithubUrl,
+    liveUrl,
+    setLiveUrl,
+    handleToggleStack,
+    handleAddCustomStack,
+    handleFormSubmit,
+  } = useWorkspaceLogModal({
+    isOpen,
+    onSubmit,
+    initialData,
+    // Updated fix applied here
+    userRole:
+      userRole === "ui_ux_design" || userRole === "web_development"
+        ? userRole
+        : "web_development",
+  });
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleCustomSubmit(e as any);
-    }
-  };
-
-  // Ensure we have a safe array to map over
-  const displayOptions = getDisplayOptions() || [];
-  // Ensure we have a safe array for checking selection
-  const safeSelected = Array.isArray(selectedStacks) ? selectedStacks : [];
+  const isGithubValid =
+    !githubUrl || githubUrl.startsWith("https://github.com");
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-        <label className="text-xs font-black text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5 uppercase tracking-wider">
-          {userRole === "ui_ux_design"
-            ? "Design Tools & Categories"
-            : "Technologies Used"}
-        </label>
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={!isSubmitting ? onClose : undefined}
+            className="fixed inset-0 bg-zinc-950/40 backdrop-blur-xs"
+          />
 
-        {/* Dynamic Tab Bar */}
-        <div className="flex p-0.5 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl text-[11px] font-bold self-start sm:self-auto">
-          {(userRole === "ui_ux_design"
-            ? (["tools", "categories"] as TabType[])
-            : (["frontend", "backend", "fullstack"] as TabType[])
-          ).map((tab) => (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.98, y: 8 }}
+            className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl shadow-xl z-10 my-auto max-h-[90vh] flex flex-col"
+          >
             <button
-              type="button"
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all capitalize cursor-pointer ${
-                activeTab === tab
-                  ? "bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-xs border border-zinc-200/40 dark:border-zinc-800/40"
-                  : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
-              }`}
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="absolute top-4 right-4 p-1.5 text-zinc-400 hover:text-zinc-600 rounded-lg bg-zinc-50 dark:bg-zinc-800/50 cursor-pointer disabled:opacity-50"
             >
-              {tab === "frontend" && <Monitor className="w-3 h-3" />}
-              {tab === "backend" && <Server className="w-3 h-3" />}
-              {tab === "fullstack" && <Terminal className="w-3 h-3" />}
-              {tab === "tools" && <PenTool className="w-3 h-3" />}
-              {tab === "categories" && <LayoutTemplate className="w-3 h-3" />}
-
-              <span>{tab === "fullstack" ? "Full Stack" : tab}</span>
+              <X className="w-4 h-4" />
             </button>
-          ))}
-        </div>
-      </div>
 
-      {/* Main Options Render Layer */}
-      <div className="p-3 bg-zinc-50/50 dark:bg-zinc-800/20 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl min-h-[100px]">
-        <motion.div
-          layout="position"
-          transition={{ type: "spring", stiffness: 400, damping: 30 }}
-          className="flex flex-wrap gap-1.5"
-        >
-          {displayOptions.map((stack) => {
-            const isSelected = safeSelected.includes(stack);
-            return (
+            <div className="mb-5 text-left pr-6">
+              <h3 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight">
+                {userRole === "ui_ux_design"
+                  ? "Design Log Details"
+                  : "Daily Work Details"}
+              </h3>
+            </div>
+
+            <form
+              onSubmit={handleFormSubmit}
+              className="space-y-4 text-left overflow-y-auto pr-1 flex-1"
+            >
+              {/* Form Fields remain same... */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-zinc-700 flex items-center gap-1.5 uppercase tracking-wider">
+                  <Layers className="w-3.5 h-3.5" /> Project Title
+                </label>
+                <input
+                  required
+                  disabled={isSubmitting}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full text-sm px-3.5 py-2.5 bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-xl"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-zinc-700 flex items-center gap-1.5 uppercase tracking-wider">
+                  <AlignLeft className="w-3.5 h-3.5" /> Description
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  value={desc}
+                  onChange={(e) => setDesc(e.target.value)}
+                  className="w-full text-sm bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5"
+                />
+              </div>
+
+              {/* Fix: Explicitly narrow the role for the selector */}
+              <TechStackSelector
+                userRole={
+                  userRole === "ui_ux_design"
+                    ? "ui_ux_design"
+                    : "web_development"
+                }
+                selectedStacks={selectedStacks}
+                onToggleStack={handleToggleStack}
+                onAddCustomStack={handleAddCustomStack}
+                customStacks={customStacks}
+              />
+
+              {userRole === "web_development" && (
+                <>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-black text-zinc-700 flex items-center gap-1.5 uppercase tracking-wider">
+                      <GitBranch className="w-3.5 h-3.5" /> GitHub Repository *
+                    </label>
+                    <input
+                      type="url"
+                      required
+                      value={githubUrl || ""}
+                      onChange={(e) => setGithubUrl(e.target.value)}
+                      className={`w-full text-sm px-3.5 py-2.5 border rounded-xl ${!isGithubValid ? "border-red-500" : "border-zinc-200 dark:border-zinc-800"}`}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-black text-zinc-700 flex items-center gap-1.5 uppercase tracking-wider">
+                      <ExternalLink className="w-3.5 h-3.5" /> Live URL
+                      (Optional)
+                    </label>
+                    <input
+                      type="url"
+                      value={liveUrl || ""}
+                      onChange={(e) => setLiveUrl(e.target.value)}
+                      className="w-full text-sm bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5"
+                    />
+                  </div>
+                </>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-zinc-700 flex items-center gap-1.5 uppercase tracking-wider">
+                  <ImagePlus className="w-3.5 h-3.5" /> UI Reference (Optional)
+                </label>
+                <input
+                  type="url"
+                  value={uiUrl || ""}
+                  onChange={(e) => setUiUrl(e.target.value)}
+                  className="w-full text-sm bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5"
+                />
+              </div>
+
               <button
-                type="button"
-                key={stack}
-                onClick={() => onToggleStack(stack)}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg border flex items-center gap-1.5 transition-all duration-150 cursor-pointer ${
-                  isSelected
-                    ? "bg-emerald-600 border-emerald-600 text-white shadow-xs scale-[1.02]"
-                    : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-700"
-                }`}
+                type="submit"
+                disabled={isSubmitting || !isGithubValid}
+                className="w-full bg-emerald-600 text-white font-black py-3 rounded-xl"
               >
-                {isSelected && <Check className="w-3 h-3 text-white" />}
-                <span>{stack}</span>
+                {isSubmitting ? "Saving..." : "Save Log Submission"}
               </button>
-            );
-          })}
-        </motion.div>
-      </div>
-
-      {/* Custom Input Area */}
-      <div className="flex gap-2">
-        <input
-          type="text"
-          placeholder={
-            userRole === "ui_ux_design"
-              ? "Add custom tool..."
-              : "Can't find your stack? Type it here..."
-          }
-          value={customInput}
-          onChange={(e) => setCustomInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="w-full text-xs bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2 text-zinc-900 dark:text-white focus:outline-hidden focus:border-emerald-500/80 transition-all placeholder-zinc-400 dark:placeholder-zinc-500 font-medium"
-        />
-        <button
-          type="button"
-          onClick={() => handleCustomSubmit(null as any)}
-          className="bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-white text-white dark:text-zinc-950 px-3.5 rounded-xl transition-all flex items-center justify-center shrink-0 cursor-pointer active:scale-95 shadow-xs"
-        >
-          <Plus className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }

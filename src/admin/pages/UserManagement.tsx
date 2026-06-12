@@ -154,7 +154,21 @@ export default function UserManagement() {
       <UserDetailsModal
         isOpen={!!selectedUser}
         onClose={() => setSelectedUser(null)}
-        user={selectedUser}
+        user={
+          selectedUser
+            ? {
+                id: selectedUser.id,
+                fullName: selectedUser.full_name, // Mapping snake_case to camelCase
+                email: selectedUser.email,
+                role: selectedUser.role,
+                createdAt: selectedUser.created_at,
+                current_streak: selectedUser.current_streak,
+                highest_streak: selectedUser.highest_streak,
+                bio: selectedUser.bio,
+                avatarUrl: selectedUser.avatar_url,
+              }
+            : null
+        }
       />
     </AdminDashboardLayout>
   );

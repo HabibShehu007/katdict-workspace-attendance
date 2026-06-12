@@ -1,6 +1,8 @@
 import { put } from "@vercel/blob";
-import { neon } from "@neondatabase/serverless";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { db } from "../../src/db/";
+import { users } from "../../src/db/schema";
+import { eq } from "drizzle-orm";
 
 // Helper function to read the stream into a buffer
 const getRawBody = (req: VercelRequest): Promise<Buffer> => {
@@ -15,8 +17,6 @@ const getRawBody = (req: VercelRequest): Promise<Buffer> => {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST")
     return res.status(405).json({ error: "Method not allowed" });
-
-  const sql = neon(process.env.DATABASE_URL!);
 
   try {
     const { searchParams } = new URL(req.url!, `https://${req.headers.host}`);
@@ -34,12 +34,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       contentType: req.headers["content-type"] || "image/jpeg",
     });
 
-    // 3. Update Neon Database
-    await sql`
-      UPDATE users 
-      SET avatar_url = ${blob.url} 
-      WHERE id = ${Number(userId)}
-    `;
+    // 3. Update User Table using Drizzle ORM
+    await db
+      .update(users)
+      .set({ avatarUrl: blob.url })
+      .where(eq(users.id, Number(userId)));
 
     return res.status(200).json({ success: true, url: blob.url });
   } catch (error) {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, FileEdit, Plus, AlertTriangle } from "lucide-react";
+import { CheckCircle2, FileEdit } from "lucide-react";
 import { toast } from "sonner";
 
 // Components
@@ -10,9 +10,10 @@ import AttendanceOptionModal from "../modals/AttendanceOptionModal";
 import WorkspaceLogModal from "../modals/WorkspaceLogModal";
 import WorkspaceSkeleton from "../workspacelog_components/WorkspaceSkeleton";
 
-// Hooks
+// Hooks & Types
 import { useWorkspaceLog } from "../../hooks/WorkSpaceLog-hooks/useWorkspaceLog";
 import { useAuth } from "../../context/AuthContext";
+import type { WorkspaceHistoryItem } from "../../types/auth.types";
 
 interface WorkspaceLogsProps {
   dayName: string;
@@ -24,7 +25,7 @@ const LoadingOverlay = ({ text }: { text: string }) => (
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
-    className="fixed inset-0 z-100 flex items-center justify-center bg-zinc-950/60 backdrop-blur-sm"
+    className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 backdrop-blur-sm"
   >
     <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-4 border border-zinc-200 dark:border-zinc-800">
       <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
@@ -39,8 +40,7 @@ export default function WorkspaceLogs({
   dayName,
   hasAttendance,
 }: WorkspaceLogsProps) {
-  const { BYPASS_TIME_GUARD } = useAuth();
-
+  const { user, BYPASS_TIME_GUARD } = useAuth();
   const {
     isAttendanceLoading,
     logData,
@@ -53,20 +53,19 @@ export default function WorkspaceLogs({
   const [showOptionsModal, setShowOptionsModal] = useState(false);
   const [showLogFormModal, setShowLogFormModal] = useState(false);
 
-  const isPastNoonCutoff = () => {
-    if (BYPASS_TIME_GUARD) return false;
-    return new Date().getHours() >= 12;
-  };
+  const isPastNoonCutoff = () =>
+    !BYPASS_TIME_GUARD && new Date().getHours() >= 12;
+  const isClosed = isPastNoonCutoff();
+
+  // Cast logData to our type
+  const typedLogData = logData as WorkspaceHistoryItem | null;
 
   const handleSelectAttendanceOnly = async () => {
-    const isSavedSuccessfully = await saveAttendanceOnly();
-    if (isSavedSuccessfully) {
-      setShowOptionsModal(false);
-    }
+    if (await saveAttendanceOnly()) setShowOptionsModal(false);
   };
 
   const handleSelectBoth = () => {
-    if (isPastNoonCutoff()) {
+    if (isClosed) {
       toast.error(
         "Submission closed! You can no longer submit daily logs after 12:00 PM.",
       );
@@ -78,7 +77,7 @@ export default function WorkspaceLogs({
   };
 
   const handleOpenLogModalClick = () => {
-    if (isPastNoonCutoff()) {
+    if (isClosed) {
       toast.error("Log submission closed!", {
         description: "The modification window closed at 12:00 PM noon.",
       });
@@ -87,12 +86,7 @@ export default function WorkspaceLogs({
     setShowLogFormModal(true);
   };
 
-  const isClosed = isPastNoonCutoff();
-
   if (isAttendanceLoading) return <WorkspaceSkeleton />;
-
-  const rawLog = logData as any;
-  const WorkspaceLogModalAny = WorkspaceLogModal as any;
 
   return (
     <>
@@ -144,20 +138,13 @@ export default function WorkspaceLogs({
                   </p>
                 </div>
               </div>
-
               {!logData && (
                 <button
                   disabled={isSubmitting}
                   onClick={handleOpenLogModalClick}
-                  className={`flex items-center justify-center gap-2 text-xs font-black border px-5 py-3 rounded-xl transition-all active:scale-95 cursor-pointer shadow-xs disabled:opacity-50 ${
-                    isClosed
-                      ? "bg-zinc-100 text-zinc-400 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-500 dark:border-zinc-700 cursor-not-allowed"
-                      : "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/60"
-                  }`}
+                  className={`flex items-center gap-2 text-xs font-black border px-5 py-3 rounded-xl transition-all ${isClosed ? "bg-zinc-100 text-zinc-400 cursor-not-allowed" : "bg-white hover:bg-zinc-50"}`}
                 >
-                  <FileEdit
-                    className={`w-4 h-4 ${isClosed ? "text-zinc-400" : "text-emerald-600 dark:text-emerald-400"}`}
-                  />
+                  <FileEdit className="w-4 h-4" />
                   <span>
                     {isSubmitting
                       ? "Saving..."
@@ -169,50 +156,23 @@ export default function WorkspaceLogs({
               )}
             </motion.div>
 
-            {logData ? (
+            {typedLogData ? (
               <WorkspaceActiveLogCard
                 onModifyClick={handleOpenLogModalClick}
-                logData={{
-                  title: rawLog?.project_title || rawLog?.title || "",
-                  desc: rawLog?.project_description || rawLog?.desc || "",
-                  stacks: rawLog?.tech_stacks || rawLog?.stacks || [],
-                  uiUrl: rawLog?.ui_reference_url || rawLog?.uiUrl || "",
-                  githubUrl: rawLog?.github_url || rawLog?.githubUrl || "",
-                  liveUrl: rawLog?.live_preview_url || rawLog?.liveUrl || "",
-                }}
+                // Cast to 'any' to bridge the local type vs component interface requirement
+                logData={typedLogData as any}
               />
             ) : (
-              <div className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-3xl text-left py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
-                <div className="space-y-1">
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium leading-relaxed">
-                    You have marked attendance to save your arrival punctuality
-                    score, but haven't submitted your task metrics details yet.
-                  </p>
-                  {isClosed && (
-                    <span className="text-xs text-rose-500 dark:text-rose-400 font-bold flex items-center gap-1.5 mt-1">
-                      <AlertTriangle className="w-3.5 h-3.5" /> Log submission
-                      window closed at 12:00 PM noon.
-                    </span>
-                  )}
-                </div>
-
+              <div className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-3xl flex justify-between gap-4">
+                <p className="text-sm text-zinc-500">
+                  You haven't submitted your task metrics details yet.
+                </p>
                 <button
                   disabled={isSubmitting || isClosed}
                   onClick={handleOpenLogModalClick}
-                  className={`flex items-center justify-center gap-2 text-xs font-black px-5 py-3 rounded-xl transition-all active:scale-95 shadow-md tracking-wide shrink-0 ${
-                    isClosed
-                      ? "bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500 border border-zinc-200 dark:border-zinc-700 cursor-not-allowed shadow-none"
-                      : "bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer"
-                  }`}
+                  className="bg-emerald-600 text-white px-5 py-3 rounded-xl font-black text-xs hover:bg-emerald-500"
                 >
-                  <Plus className="w-4 h-4" />
-                  <span>
-                    {isSubmitting
-                      ? "Processing..."
-                      : isClosed
-                        ? "Locked"
-                        : "Add Progress Logs Now"}
-                  </span>
+                  Add Progress Logs Now
                 </button>
               </div>
             )}
@@ -227,15 +187,14 @@ export default function WorkspaceLogs({
         onBoth={handleSelectBoth}
       />
 
-      <WorkspaceLogModalAny
-        key={showLogFormModal ? "open" : "closed"}
+      <WorkspaceLogModal
         isOpen={showLogFormModal}
         isSubmitting={isSubmitting}
         onClose={() => setShowLogFormModal(false)}
-        initialData={logData ? rawLog : undefined}
+        initialData={typedLogData}
+        userRole={user?.role || "web_development"}
         onSubmit={async (data: any) => {
-          const success = await submitWorkLog(data);
-          if (success) setShowLogFormModal(false);
+          if (await submitWorkLog(data)) setShowLogFormModal(false);
         }}
       />
     </>

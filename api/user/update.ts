@@ -1,32 +1,32 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { neon } from "@neondatabase/serverless";
+import { db } from "../../src/db/";
+import { users } from "../../src/db/schema";
+import { eq } from "drizzle-orm";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed." });
   }
 
-  const dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl) return res.status(500).json({ error: "DB config missing." });
-
-  const sql = neon(dbUrl);
-
   try {
     const { userId, fullName, role, avatarUrl, bio } = req.body;
     if (!userId) return res.status(400).json({ error: "Missing userId." });
 
+    const uid = Number(userId);
+
+    // Build update object dynamically to only include provided fields
+    const updateData: Record<string, any> = {};
+    if (fullName !== undefined) updateData.fullName = fullName;
+    if (role !== undefined) updateData.role = role;
+    if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
+    if (bio !== undefined) updateData.bio = bio;
+
     // Perform the update
-    // Note: We use COALESCE so that if a field is null, it keeps the existing value
-    const [updatedUser] = await sql`
-      UPDATE users
-      SET 
-        full_name = COALESCE(${fullName}, full_name),
-        role = COALESCE(${role}, role),
-        avatar_url = COALESCE(${avatarUrl}, avatar_url),
-        bio = COALESCE(${bio}, bio)
-      WHERE id = ${Number(userId)}
-      RETURNING id, full_name, email, role, avatar_url, bio, current_streak, highest_streak, created_at
-    `;
+    const [updatedUser] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, uid))
+      .returning();
 
     if (!updatedUser) {
       return res.status(404).json({ error: "User not found." });

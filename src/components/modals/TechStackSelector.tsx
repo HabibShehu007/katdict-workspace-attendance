@@ -1,11 +1,18 @@
 import { motion } from "framer-motion";
-import { Monitor, Server, Terminal, Plus, Check } from "lucide-react";
+import {
+  Monitor,
+  Server,
+  Terminal,
+  Plus,
+  Check,
+  PenTool,
+  LayoutTemplate,
+} from "lucide-react";
 import { useTechStackSelector } from "../../hooks/WorkSpaceLog-Components-hooks/useTechStackSelector";
 import type { TabType } from "../../hooks/WorkSpaceLog-Components-hooks/useTechStackSelector";
-import type { UserRole } from "../../types/auth.types"; // Add this
 
 interface TechStackSelectorProps {
-  userRole: UserRole; // Add this
+  userRole: "web_development" | "ui_ux_design";
   selectedStacks: string[];
   onToggleStack: (stack: string) => void;
   onAddCustomStack: (stack: string) => void;
@@ -13,13 +20,12 @@ interface TechStackSelectorProps {
 }
 
 export default function TechStackSelector({
-  userRole, // Add this
-  selectedStacks,
+  userRole,
+  selectedStacks = [],
   onToggleStack,
   onAddCustomStack,
-  customStacks,
+  customStacks = [],
 }: TechStackSelectorProps) {
-  // Pass userRole here
   const {
     activeTab,
     setActiveTab,
@@ -29,13 +35,15 @@ export default function TechStackSelector({
     handleCustomSubmit,
   } = useTechStackSelector({ userRole, customStacks, onAddCustomStack });
 
-  // FIXED: Manual "Enter" key listener to replace nested <form> behavior
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
-      e.preventDefault(); // Stop the outer Modal form from triggering
+      e.preventDefault();
       handleCustomSubmit(e as any);
     }
   };
+
+  const displayOptions = getDisplayOptions() || [];
+  const safeSelected = Array.isArray(selectedStacks) ? selectedStacks : [];
 
   return (
     <div className="space-y-3">
@@ -46,7 +54,6 @@ export default function TechStackSelector({
             : "Technologies Used"}
         </label>
 
-        {/* Dynamic Tab Bar */}
         <div className="flex p-0.5 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl text-[11px] font-bold self-start sm:self-auto">
           {(userRole === "ui_ux_design"
             ? (["tools", "categories"] as TabType[])
@@ -62,10 +69,11 @@ export default function TechStackSelector({
                   : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
               }`}
             >
-              {/* Icons change based on role */}
               {tab === "frontend" && <Monitor className="w-3 h-3" />}
               {tab === "backend" && <Server className="w-3 h-3" />}
               {tab === "fullstack" && <Terminal className="w-3 h-3" />}
+              {tab === "tools" && <PenTool className="w-3 h-3" />}
+              {tab === "categories" && <LayoutTemplate className="w-3 h-3" />}
 
               <span>{tab === "fullstack" ? "Full Stack" : tab}</span>
             </button>
@@ -73,15 +81,14 @@ export default function TechStackSelector({
         </div>
       </div>
 
-      {/* Main Options Render Layer */}
       <div className="p-3 bg-zinc-50/50 dark:bg-zinc-800/20 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl min-h-[100px]">
         <motion.div
           layout="position"
           transition={{ type: "spring", stiffness: 400, damping: 30 }}
           className="flex flex-wrap gap-1.5"
         >
-          {getDisplayOptions().map((stack) => {
-            const isSelected = selectedStacks.includes(stack);
+          {displayOptions.map((stack) => {
+            const isSelected = safeSelected.includes(stack);
             return (
               <button
                 type="button"
@@ -101,14 +108,13 @@ export default function TechStackSelector({
         </motion.div>
       </div>
 
-      {/* Custom Input Area */}
       <div className="flex gap-2">
         <input
           type="text"
           placeholder={
             userRole === "ui_ux_design"
-              ? "Add custom tool... (e.g., Penpot, Framer)"
-              : "Can't find your stack? Type it here... (e.g., Docker)"
+              ? "Add custom tool..."
+              : "Can't find your stack? Type it here..."
           }
           value={customInput}
           onChange={(e) => setCustomInput(e.target.value)}
@@ -117,7 +123,7 @@ export default function TechStackSelector({
         />
         <button
           type="button"
-          onClick={handleCustomSubmit}
+          onClick={() => handleCustomSubmit(null as any)}
           className="bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-white text-white dark:text-zinc-950 px-3.5 rounded-xl transition-all flex items-center justify-center shrink-0 cursor-pointer active:scale-95 shadow-xs"
         >
           <Plus className="w-4 h-4" />

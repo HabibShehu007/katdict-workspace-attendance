@@ -1,46 +1,52 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { neon } from "@neondatabase/serverless";
+import { db } from "../../src/db/";
+import { attendanceLogs, users } from "../../src/db/schema";
+import { eq, sql } from "drizzle-orm";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST")
     return res.status(405).json({ error: "Method not allowed." });
 
-  const dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl) return res.status(500).json({ error: "Database URL missing." });
-
-  const sql = neon(dbUrl);
-
   try {
-    const { userId, day, title, desc, stacks, uiUrl, githubUrl, liveUrl } =
-      req.body;
-    const logDate = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+    // We now accept 'workData' as a single dynamic object
+    const { userId, day, title, desc, workData } = req.body;
+
     const uid = Number(userId);
+    const logDate = new Date().toISOString().split("T")[0];
 
-    // 1. Submit/Update the Log
-    await sql`
-      INSERT INTO daily_attendance_logs (
-        user_id, day_name, log_date, project_title, project_description, 
-        tech_stacks, ui_reference_url, github_url, live_preview_url, is_log_empty
-      ) 
-      VALUES (${uid}, ${day}, ${logDate}, ${title}, ${desc}, ${stacks}, 
-              ${uiUrl || null}, ${githubUrl || null}, ${liveUrl || null}, false)
-      ON CONFLICT (user_id, log_date) 
-      DO UPDATE SET 
-        project_title = EXCLUDED.project_title,
-        project_description = EXCLUDED.project_description,
-        tech_stacks = EXCLUDED.tech_stacks,
-        ui_reference_url = EXCLUDED.ui_reference_url,
-        github_url = EXCLUDED.github_url,
-        live_preview_url = EXCLUDED.live_preview_url,
-        is_log_empty = false,
-        updated_at = NOW();
-    `;
+    await db
+      .insert(attendanceLogs)
+      .values({
+        userId: uid,
+        dayName: day,
+        logDate: logDate,
+        projectTitle: title,
+        projectDescription: desc,
+        isLogEmpty: false,
+        workData: workData, // Saving the dynamic object directly
+      })
+      .onConflictDoUpdate({
+        target: [attendanceLogs.userId, attendanceLogs.logDate],
+        set: {
+          projectTitle: title,
+          projectDescription: desc,
+          workData: workData, // Updating the dynamic object directly
+          isLogEmpty: false,
+          updatedAt: new Date(),
+        },
+      });
 
-    // 2. Update Streak Logic
-    const userStats =
-      await sql`SELECT current_streak, last_activity_date FROM users WHERE id = ${uid}`;
-    const lastDate = userStats[0]?.last_activity_date;
-    const currentStreak = userStats[0]?.current_streak || 0;
+    // 2. Streak Logic
+    const [user] = await db
+      .select({
+        currentStreak: users.currentStreak,
+        lastActivityDate: users.lastActivityDate,
+      })
+      .from(users)
+      .where(eq(users.id, uid));
+
+    const lastDate = user ? user.lastActivityDate : null;
+    const currentStreak = user ? user.currentStreak || 0 : 0;
 
     const today = new Date(logDate);
     const last = lastDate ? new Date(lastDate) : null;
@@ -50,33 +56,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (last) {
       const diffTime = today.getTime() - last.getTime();
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      const todayDay = today.getDay();
+      const lastDay = last.getDay();
 
-      const todayDay = today.getDay(); // 1 = Monday
-      const lastDay = last.getDay(); // 5 = Friday
-
-      // Check if it's Monday and the previous log was Friday
       const isMondayAfterFriday =
         todayDay === 1 && lastDay === 5 && diffDays === 3;
 
       if (diffDays === 1 || isMondayAfterFriday) {
         newStreak = currentStreak + 1;
       } else if (diffDays === 0) {
-        newStreak = currentStreak; // Keep existing streak
+        newStreak = currentStreak;
       } else {
-        newStreak = 1; // Streak broken
+        newStreak = 1;
       }
-    } else {
-      newStreak = 1; // First ever log
     }
 
-    // 3. Update User Table
-    await sql`
-      UPDATE users 
-      SET current_streak = ${newStreak},
-          highest_streak = GREATEST(highest_streak, ${newStreak}),
-          last_activity_date = ${logDate}
-      WHERE id = ${uid}
-    `;
+    // 3. Update User Table using Drizzle
+    await db
+      .update(users)
+      .set({
+        currentStreak: newStreak,
+        highestStreak: sql`GREATEST(highest_streak, ${newStreak})`,
+        lastActivityDate: new Date(),
+      })
+      .where(eq(users.id, uid));
 
     return res.status(200).json({ success: true, streak: newStreak });
   } catch (error: any) {

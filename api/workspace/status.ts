@@ -1,38 +1,42 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { neon } from "@neondatabase/serverless";
+import { db } from "../../src/db/";
+import { attendanceLogs, users } from "../../src/db/schema";
+import { eq, and, sql } from "drizzle-orm";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET")
     return res.status(405).json({ error: "Method not allowed." });
 
-  const dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl) return res.status(500).json({ error: "DB config missing." });
-
-  const sql = neon(dbUrl);
-
   try {
     const { userId } = req.query;
     if (!userId) return res.status(400).json({ error: "Missing userId." });
 
-    // 1. Join attendance with user streaks
-    const [result] = await sql`
-      SELECT 
-        log.*, 
-        u.current_streak, 
-        u.highest_streak
-      FROM daily_attendance_logs log
-      JOIN users u ON u.id = log.user_id
-      WHERE log.user_id = ${Number(userId)} 
-      AND log.log_date = CURRENT_DATE
-    `;
+    const uid = Number(userId);
+    const today = new Date().toISOString().split("T")[0];
 
-    // 2. Fallback: If no log for today, just get the user's base streak stats
+    // 1. Join attendance with user streaks using Drizzle
+    const [result] = await db
+      .select({
+        log: attendanceLogs,
+        currentStreak: users.currentStreak,
+        highestStreak: users.highestStreak,
+      })
+      .from(attendanceLogs)
+      .innerJoin(users, eq(users.id, attendanceLogs.userId))
+      .where(
+        and(eq(attendanceLogs.userId, uid), eq(attendanceLogs.logDate, today)),
+      );
+
+    // 2. Fallback: If no log for today, fetch user base stats
     if (!result) {
-      const [userStats] = await sql`
-        SELECT current_streak, highest_streak 
-        FROM users 
-        WHERE id = ${Number(userId)}
-      `;
+      const [userStats] = await db
+        .select({
+          currentStreak: users.currentStreak,
+          highestStreak: users.highestStreak,
+        })
+        .from(users)
+        .where(eq(users.id, uid));
+
       return res.status(200).json({
         success: true,
         data: userStats
@@ -41,10 +45,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // 3. Return result with explicit flag
+    // 3. Return combined result with attendance flag
     return res.status(200).json({
       success: true,
-      data: { ...result, attendance_exists: true },
+      data: {
+        ...result.log,
+        current_streak: result.currentStreak,
+        highest_streak: result.highestStreak,
+        attendance_exists: true,
+      },
     });
   } catch (error) {
     console.error("Database Status Query Error:", error);

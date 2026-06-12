@@ -119,12 +119,18 @@ export function useWorkspaceLog(dayName: string) {
     isAttendanceLoading,
     logData: attendance.isLogComplete
       ? {
-          title: attendance.data?.project_title,
-          desc: attendance.data?.project_description,
+          // Map DB column names to UI keys
+          title: attendance.data?.project_title || "Untitled",
+          desc: attendance.data?.project_description || "",
           stacks: attendance.data?.tech_stacks || [],
-          uiUrl: attendance.data?.ui_reference_url,
+          uiUrl: attendance.data?.ui_reference_url || "",
           githubUrl: attendance.data?.github_url || "",
           liveUrl: attendance.data?.live_preview_url || "",
+
+          // CRITICAL: These were missing from your hook's return object
+          arrival_time: attendance.data?.arrival_time || "--:--",
+          day_name: attendance.data?.day_name || "Daily Log",
+          role: attendance.data?.role || "web_development",
         }
       : null,
     isSubmitting,
