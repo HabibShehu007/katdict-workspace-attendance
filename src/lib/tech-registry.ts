@@ -1,111 +1,80 @@
-import {
-  SiReact,
-  SiNodedotjs,
-  SiFastify,
-  SiSupabase,
-  SiTailwindcss,
-  SiTypescript,
-  SiGit,
-  SiPostgresql,
-  SiNextdotjs,
-  SiDocker,
-  SiPrisma,
-  SiGraphql,
-  SiRedis,
-  SiFirebase,
-  SiVercel,
-  SiPython,
-  SiGo,
-  SiRust,
-  SiPhp,
-  SiLaravel,
-  SiVuedotjs,
-  SiAngular,
-  SiSvelte,
-  SiHtml5,
-  SiCss,
-  SiJavascript,
-  SiMongodb,
-  SiSqlite,
-  SiMysql,
-  SiCloudflare,
-  SiFigma,
-  SiJest,
-  SiVitest,
-  SiWebpack,
-  SiVite,
-  SiDeno,
-  SiBun,
-  SiKubernetes,
-  SiTerraform,
-} from "react-icons/si";
 import { FaCode } from "react-icons/fa";
 
 export interface TechStack {
   label: string;
   color: string;
-  icon: React.ElementType;
+  slug: string; // The Simple Icons identifier
 }
 
 export const TECH_REGISTRY: Record<string, TechStack> = {
-  // Core
-  react: { label: "React", color: "blue", icon: SiReact },
-  nextjs: { label: "Next.js", color: "zinc", icon: SiNextdotjs },
-  typescript: { label: "TypeScript", color: "blue", icon: SiTypescript },
-  javascript: { label: "JavaScript", color: "yellow", icon: SiJavascript },
-  html: { label: "HTML5", color: "orange", icon: SiHtml5 },
-  css: { label: "CSS3", color: "blue", icon: SiCss },
+  // Core & Web
+  react: { label: "React", color: "blue", slug: "react" },
+  nextjs: { label: "Next.js", color: "zinc", slug: "nextdotjs" },
+  typescript: { label: "TypeScript", color: "blue", slug: "typescript" },
+  javascript: { label: "JavaScript", color: "yellow", slug: "javascript" },
+  html: { label: "HTML5", color: "orange", slug: "html5" },
+  css: { label: "CSS3", color: "blue", slug: "css3" },
+  tailwind: { label: "Tailwind", color: "sky", slug: "tailwindcss" },
 
-  // Backend & Runtime
-  node: { label: "Node.js", color: "emerald", icon: SiNodedotjs },
-  fastify: { label: "Fastify", color: "zinc", icon: SiFastify },
-  bun: { label: "Bun", color: "amber", icon: SiBun },
-  deno: { label: "Deno", color: "zinc", icon: SiDeno },
-  python: { label: "Python", color: "blue", icon: SiPython },
-  go: { label: "Go", color: "sky", icon: SiGo },
-  rust: { label: "Rust", color: "orange", icon: SiRust },
-  php: { label: "PHP", color: "indigo", icon: SiPhp },
+  // Backend & Runtimes
+  node: { label: "Node.js", color: "emerald", slug: "nodedotjs" },
+  fastify: { label: "Fastify", color: "zinc", slug: "fastify" },
+  bun: { label: "Bun", color: "amber", slug: "bun" },
+  deno: { label: "Deno", color: "zinc", slug: "deno" },
+  python: { label: "Python", color: "blue", slug: "python" },
+  go: { label: "Go", color: "sky", slug: "go" },
+  rust: { label: "Rust", color: "orange", slug: "rust" },
+  php: { label: "PHP", color: "indigo", slug: "php" },
+  laravel: { label: "Laravel", color: "red", slug: "laravel" },
 
   // Databases
-  supabase: { label: "Supabase", color: "emerald", icon: SiSupabase },
-  postgres: { label: "PostgreSQL", color: "blue", icon: SiPostgresql },
-  mongodb: { label: "MongoDB", color: "green", icon: SiMongodb },
-  redis: { label: "Redis", color: "red", icon: SiRedis },
-  mysql: { label: "MySQL", color: "blue", icon: SiMysql },
-  sqlite: { label: "SQLite", color: "sky", icon: SiSqlite },
-  prisma: { label: "Prisma", color: "teal", icon: SiPrisma },
+  supabase: { label: "Supabase", color: "emerald", slug: "supabase" },
+  postgres: { label: "PostgreSQL", color: "blue", slug: "postgresql" },
+  mongodb: { label: "MongoDB", color: "green", slug: "mongodb" },
+  redis: { label: "Redis", color: "red", slug: "redis" },
+  mysql: { label: "MySQL", color: "blue", slug: "mysql" },
+  sqlite: { label: "SQLite", color: "sky", slug: "sqlite" },
+  prisma: { label: "Prisma", color: "teal", slug: "prisma" },
 
-  // Frontend/Design
-  tailwind: { label: "Tailwind", color: "sky", icon: SiTailwindcss },
-  vue: { label: "Vue", color: "emerald", icon: SiVuedotjs },
-  angular: { label: "Angular", color: "red", icon: SiAngular },
-  svelte: { label: "Svelte", color: "orange", icon: SiSvelte },
-  figma: { label: "Figma", color: "purple", icon: SiFigma },
+  // Design Tools
+  figma: { label: "Figma", color: "purple", slug: "figma" },
+  photoshop: { label: "Photoshop", color: "blue", slug: "adobephotoshop" },
+  illustrator: {
+    label: "Illustrator",
+    color: "orange",
+    slug: "adobeillustrator",
+  },
+  xd: { label: "Adobe XD", color: "pink", slug: "adobexd" },
+  sketch: { label: "Sketch", color: "orange", slug: "sketch" },
+  blender: { label: "Blender", color: "orange", slug: "blender" },
+  inkscape: { label: "Inkscape", color: "green", slug: "inkscape" },
 
   // DevOps & Cloud
-  git: { label: "Git", color: "orange", icon: SiGit },
-  docker: { label: "Docker", color: "blue", icon: SiDocker },
-  kubernetes: { label: "Kubernetes", color: "blue", icon: SiKubernetes },
-  aws: { label: "AWS", color: "orange", icon: SiFirebase },
-  vercel: { label: "Vercel", color: "zinc", icon: SiVercel },
-  cloudflare: { label: "Cloudflare", color: "orange", icon: SiCloudflare },
-  terraform: { label: "Terraform", color: "purple", icon: SiTerraform },
+  git: { label: "Git", color: "orange", slug: "git" },
+  docker: { label: "Docker", color: "blue", slug: "docker" },
+  kubernetes: { label: "Kubernetes", color: "blue", slug: "kubernetes" },
+  aws: { label: "AWS", color: "orange", slug: "amazonaws" },
+  vercel: { label: "Vercel", color: "zinc", slug: "vercel" },
+  cloudflare: { label: "Cloudflare", color: "orange", slug: "cloudflare" },
+  terraform: { label: "Terraform", color: "purple", slug: "terraform" },
 
   // Testing & Tooling
-  jest: { label: "Jest", color: "red", icon: SiJest },
-  vitest: { label: "Vitest", color: "yellow", icon: SiVitest },
-  vite: { label: "Vite", color: "purple", icon: SiVite },
-  webpack: { label: "Webpack", color: "blue", icon: SiWebpack },
-  graphql: { label: "GraphQL", color: "pink", icon: SiGraphql },
-  firebase: { label: "Firebase", color: "yellow", icon: SiFirebase },
-  laravel: { label: "Laravel", color: "red", icon: SiLaravel },
+  jest: { label: "Jest", color: "red", slug: "jest" },
+  vitest: { label: "Vitest", color: "yellow", slug: "vitest" },
+  vite: { label: "Vite", color: "purple", slug: "vite" },
+  graphql: { label: "GraphQL", color: "pink", slug: "graphql" },
+  firebase: { label: "Firebase", color: "yellow", slug: "firebase" },
 };
 
+/**
+ * Returns registry info or defaults to a generic code icon
+ */
 export const getTechDetails = (key: string): TechStack => {
   return (
     TECH_REGISTRY[key.toLowerCase()] || {
       label: key.charAt(0).toUpperCase() + key.slice(1),
       color: "zinc",
+      slug: "code",
       icon: FaCode,
     }
   );

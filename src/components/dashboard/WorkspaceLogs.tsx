@@ -9,6 +9,7 @@ import WorkspaceActiveLogCard from "../workspacelog_components/WorkspaceActiveLo
 import AttendanceOptionModal from "../modals/AttendanceOptionModal";
 import WorkspaceLogModal from "../modals/WorkspaceLogModal";
 import WorkspaceSkeleton from "../workspacelog_components/WorkspaceSkeleton";
+import { LoadingOverlay } from "../ui/LoadingOverlay";
 
 // Hooks & Types
 import { useWorkspaceLog } from "../../hooks/WorkSpaceLog-hooks/useWorkspaceLog";
@@ -19,22 +20,6 @@ interface WorkspaceLogsProps {
   dayName: string;
   hasAttendance: boolean;
 }
-
-const LoadingOverlay = ({ text }: { text: string }) => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 backdrop-blur-sm"
-  >
-    <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-4 border border-zinc-200 dark:border-zinc-800">
-      <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-      <p className="text-sm font-black text-zinc-900 dark:text-white tracking-wide uppercase">
-        {text}
-      </p>
-    </div>
-  </motion.div>
-);
 
 export default function WorkspaceLogs({
   dayName,
@@ -52,7 +37,7 @@ export default function WorkspaceLogs({
     submitWorkLog,
   } = useWorkspaceLog(dayName);
 
-  console.log("Debug WorkspaceLogs:", { isLogComplete, logData });
+  // console.log("Debug WorkspaceLogs:", { isLogComplete, logData });
 
   const [showOptionsModal, setShowOptionsModal] = useState(false);
   const [showLogFormModal, setShowLogFormModal] = useState(false);
@@ -96,7 +81,9 @@ export default function WorkspaceLogs({
       <AnimatePresence>
         {isSubmitting && (
           <LoadingOverlay
-            text={hasAttendance ? `Updating logs...` : `Marking attendance...`}
+            message={
+              hasAttendance ? "Updating logs..." : "Marking attendance..."
+            }
           />
         )}
       </AnimatePresence>
@@ -179,10 +166,12 @@ export default function WorkspaceLogs({
       />
       <WorkspaceLogModal
         isOpen={showLogFormModal}
-        isSubmitting={isSubmitting}
+        isSubmitting={isSubmitting} // The modal can also use this to disable its own buttons
         onClose={() => setShowLogFormModal(false)}
         initialData={typedLogData}
-        userRole={user?.role || "web_development"}
+        userRole={
+          user?.role === "ui_ux_design" ? "ui_ux_design" : "web_development"
+        }
         onSubmit={async (data: any) => {
           if (await submitWorkLog(data)) setShowLogFormModal(false);
         }}

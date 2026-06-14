@@ -8,6 +8,7 @@ import {
   varchar,
   text,
   jsonb,
+  unique, // Import this
 } from "drizzle-orm/pg-core";
 
 // 1. Users Table (Identity & Streaks)
@@ -26,24 +27,27 @@ export const users = pgTable("users", {
 });
 
 // 2. Attendance/Logs Table (The Core Gateway)
-export const attendanceLogs = pgTable("daily_attendance_logs", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  logDate: date("log_date").notNull(),
-  arrivalTime: timestamp("arrival_time"),
-  isLate: boolean("is_late").default(false),
-  isOnSite: boolean("is_on_site").default(true),
-  dayName: varchar("day_name"),
-  isLogEmpty: boolean("is_log_empty").default(true),
+export const attendanceLogs = pgTable(
+  "daily_attendance_logs",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id").notNull(),
+    logDate: date("log_date").notNull(),
+    arrivalTime: timestamp("arrival_time"),
+    isLate: boolean("is_late").default(false),
+    isOnSite: boolean("is_on_site").default(true),
+    dayName: varchar("day_name"),
+    isLogEmpty: boolean("is_log_empty").default(true),
 
-  // Core project info (Every role has a project/task title and description)
-  projectTitle: varchar("project_title"),
-  projectDescription: text("project_description"),
+    projectTitle: varchar("project_title"),
+    projectDescription: text("project_description"),
+    workData: jsonb("work_data").default({}).notNull(),
 
-  // THE DYNAMIC ENGINE: Polymorphic storage for role-specific tools, stacks, or references
-
-  workData: jsonb("work_data").default({}).notNull(),
-
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    // This constraint tells Postgres that a user cannot have two logs for the same date
+    userDateUnique: unique("user_date_unique").on(table.userId, table.logDate),
+  }),
+);

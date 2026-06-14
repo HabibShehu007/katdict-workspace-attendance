@@ -1,4 +1,17 @@
-export const DEV_STACKS = {
+// constants/techStacks.ts
+
+// Define the shape of our stacks to ensure consistency
+interface DevStack {
+  frontend: string[];
+  backend: string[];
+}
+
+interface DesignStack {
+  tools: string[];
+  categories: string[];
+}
+
+export const DEV_STACKS: DevStack = {
   frontend: [
     "HTML5",
     "CSS3",
@@ -21,9 +34,9 @@ export const DEV_STACKS = {
     "WebSockets",
     "REST APIs",
   ],
-};
+} as const;
 
-export const DESIGN_STACKS = {
+export const DESIGN_STACKS: DesignStack = {
   tools: [
     "Figma",
     "Adobe XD",
@@ -43,9 +56,9 @@ export const DESIGN_STACKS = {
     "Motion Graphics",
     "Wireframing",
   ],
-};
+} as const;
 
-export const PLACEHOLDER_SUGGESTIONS = {
+export const PLACEHOLDER_SUGGESTIONS: Record<string, string[]> = {
   web_development: [
     "Building user authentication layers...",
     "Fixing secure connection routes...",
@@ -59,4 +72,4 @@ export const PLACEHOLDER_SUGGESTIONS = {
     "Optimizing vector assets for web...",
     "Polishing interface animation curves...",
   ],
-};
+} as const;

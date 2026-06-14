@@ -42,6 +42,8 @@ export interface WorkspaceHistoryItem {
   workData: WorkData; // Here is our JSONB dynamic field
   createdAt: string;
   title?: string;
+  isLate: boolean; // Add this
+  isOnSite: boolean;
   desc?: string;
   stacks?: string[];
   tools?: string[];

@@ -1,67 +1,29 @@
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  X,
-  Layers,
-  AlignLeft,
-  ImagePlus,
-  GitBranch,
-  ExternalLink,
-} from "lucide-react";
-import TechStackSelector from "./TechStackSelector";
+import { X } from "lucide-react";
 import { useWorkspaceLogModal } from "../../hooks/WorkSpaceLog-Components-hooks/useWorkspaceLogModal";
 import type { WorkspaceHistoryItem, UserRole } from "../../types/auth.types";
+import DevLogForm from "../forms/DevLogForm";
+import DesignLogForm from "../forms/DesignLogForm"; // We will create this next
 
-interface WorkspaceLogModalProps {
+interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: any) => void;
   isSubmitting?: boolean;
   initialData: WorkspaceHistoryItem | null;
-  userRole: UserRole;
+  userRole: Extract<UserRole, "web_development" | "ui_ux_design">;
 }
 
-export default function WorkspaceLogModal({
-  isOpen,
-  onClose,
-  onSubmit,
-  isSubmitting = false,
-  initialData,
-  userRole,
-}: WorkspaceLogModalProps) {
-  const {
-    title,
-    setTitle,
-    desc,
-    setDesc,
-    selectedStacks,
-    customStacks,
-    uiUrl,
-    setUiUrl,
-    githubUrl,
-    setGithubUrl,
-    liveUrl,
-    setLiveUrl,
-    handleToggleStack,
-    handleAddCustomStack,
-    handleFormSubmit,
-  } = useWorkspaceLogModal({
-    isOpen,
-    onSubmit,
-    initialData,
-    // Updated fix applied here
-    userRole:
-      userRole === "ui_ux_design" || userRole === "web_development"
-        ? userRole
-        : "web_development",
-  });
+export default function WorkspaceLogModal(props: Props) {
+  const { isOpen, onClose, isSubmitting, userRole } = props;
 
-  const isGithubValid =
-    !githubUrl || githubUrl.startsWith("https://github.com");
+  // modalLogic now contains state and handlers
+  const modalLogic = useWorkspaceLogModal(props);
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -71,120 +33,40 @@ export default function WorkspaceLogModal({
           />
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.98, y: 8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.98, y: 8 }}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
             className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl shadow-xl z-10 my-auto max-h-[90vh] flex flex-col"
           >
             <button
               onClick={onClose}
               disabled={isSubmitting}
-              className="absolute top-4 right-4 p-1.5 text-zinc-400 hover:text-zinc-600 rounded-lg bg-zinc-50 dark:bg-zinc-800/50 cursor-pointer disabled:opacity-50"
+              className="absolute top-4 right-4 p-1.5 text-zinc-400 hover:text-zinc-600 rounded-lg bg-zinc-50 dark:bg-zinc-800/50 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <div className="mb-5 text-left pr-6">
-              <h3 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight">
+            <div className="mb-5 text-left">
+              <h3 className="text-xl font-black text-zinc-900 dark:text-white">
                 {userRole === "ui_ux_design"
                   ? "Design Log Details"
                   : "Daily Work Details"}
               </h3>
             </div>
 
-            <form
-              onSubmit={handleFormSubmit}
-              className="space-y-4 text-left overflow-y-auto pr-1 flex-1"
-            >
-              {/* Form Fields remain same... */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-black text-zinc-700 flex items-center gap-1.5 uppercase tracking-wider">
-                  <Layers className="w-3.5 h-3.5" /> Project Title
-                </label>
-                <input
-                  required
-                  disabled={isSubmitting}
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full text-sm px-3.5 py-2.5 bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-xl"
+            {/* Modal Factory Switch */}
+            <div className="flex-1 overflow-y-auto no-scrollbar">
+              {userRole === "web_development" ? (
+                <DevLogForm
+                  {...modalLogic}
+                  isSubmitting={isSubmitting || false}
                 />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-black text-zinc-700 flex items-center gap-1.5 uppercase tracking-wider">
-                  <AlignLeft className="w-3.5 h-3.5" /> Description
-                </label>
-                <textarea
-                  required
-                  rows={3}
-                  value={desc}
-                  onChange={(e) => setDesc(e.target.value)}
-                  className="w-full text-sm bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5"
+              ) : (
+                <DesignLogForm
+                  {...modalLogic}
+                  isSubmitting={isSubmitting || false}
                 />
-              </div>
-
-              {/* Fix: Explicitly narrow the role for the selector */}
-              <TechStackSelector
-                userRole={
-                  userRole === "ui_ux_design"
-                    ? "ui_ux_design"
-                    : "web_development"
-                }
-                selectedStacks={selectedStacks}
-                onToggleStack={handleToggleStack}
-                onAddCustomStack={handleAddCustomStack}
-                customStacks={customStacks}
-              />
-
-              {userRole === "web_development" && (
-                <>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-black text-zinc-700 flex items-center gap-1.5 uppercase tracking-wider">
-                      <GitBranch className="w-3.5 h-3.5" /> GitHub Repository *
-                    </label>
-                    <input
-                      type="url"
-                      required
-                      value={githubUrl || ""}
-                      onChange={(e) => setGithubUrl(e.target.value)}
-                      className={`w-full text-sm px-3.5 py-2.5 border rounded-xl ${!isGithubValid ? "border-red-500" : "border-zinc-200 dark:border-zinc-800"}`}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-black text-zinc-700 flex items-center gap-1.5 uppercase tracking-wider">
-                      <ExternalLink className="w-3.5 h-3.5" /> Live URL
-                      (Optional)
-                    </label>
-                    <input
-                      type="url"
-                      value={liveUrl || ""}
-                      onChange={(e) => setLiveUrl(e.target.value)}
-                      className="w-full text-sm bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5"
-                    />
-                  </div>
-                </>
               )}
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-black text-zinc-700 flex items-center gap-1.5 uppercase tracking-wider">
-                  <ImagePlus className="w-3.5 h-3.5" /> UI Reference (Optional)
-                </label>
-                <input
-                  type="url"
-                  value={uiUrl || ""}
-                  onChange={(e) => setUiUrl(e.target.value)}
-                  className="w-full text-sm bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSubmitting || !isGithubValid}
-                className="w-full bg-emerald-600 text-white font-black py-3 rounded-xl"
-              >
-                {isSubmitting ? "Saving..." : "Save Log Submission"}
-              </button>
-            </form>
+            </div>
           </motion.div>
         </div>
       )}

@@ -17,7 +17,6 @@ export function useWorkspaceLogModal({
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [selectedStacks, setSelectedStacks] = useState<string[]>([]);
-  const [customStacks, setCustomStacks] = useState<string[]>([]);
   const [uiUrl, setUiUrl] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
   const [liveUrl, setLiveUrl] = useState("");
@@ -34,23 +33,6 @@ export function useWorkspaceLogModal({
         setTitle(initialData.title || "");
         setDesc(initialData.desc || "");
         setSelectedStacks(initialData.stacks || []);
-
-        const defaultAvailableStacks = [
-          "React",
-          "Node.js",
-          "Fastify",
-          "Tailwind CSS",
-          "Next.js",
-          "TypeScript",
-          "Supabase",
-          "Figma",
-        ];
-
-        const extractedCustom = (initialData.stacks || []).filter(
-          (stack: string) => !defaultAvailableStacks.includes(stack),
-        );
-        setCustomStacks(extractedCustom);
-
         setUiUrl(initialData.uiUrl || "");
         setGithubUrl(initialData.githubUrl || "");
         setLiveUrl(initialData.liveUrl || "");
@@ -58,7 +40,6 @@ export function useWorkspaceLogModal({
         setTitle("");
         setDesc("");
         setSelectedStacks([]);
-        setCustomStacks([]);
         setUiUrl("");
         setGithubUrl("");
         setLiveUrl("");
@@ -66,30 +47,17 @@ export function useWorkspaceLogModal({
     }
   }, [isOpen, initialData]);
 
-  // FIXED: Dynamic placeholder switcher
   useEffect(() => {
     if (!isOpen) return;
-
-    // Select the array based on role first
     const rolePlaceholders = PLACEHOLDER_SUGGESTIONS[userRole] || [];
-
     const interval = setInterval(() => {
       setPlaceholderIndex((prev) => (prev + 1) % rolePlaceholders.length);
     }, 3500);
-
     return () => clearInterval(interval);
   }, [isOpen, userRole]);
 
-  const handleToggleStack = useCallback((stack: string) => {
-    setSelectedStacks((prev) =>
-      prev.includes(stack) ? prev.filter((s) => s !== stack) : [...prev, stack],
-    );
-  }, []);
-
+  // Unified stack handler: adds to the stack list
   const handleAddCustomStack = useCallback((newStack: string) => {
-    setCustomStacks((prev) =>
-      prev.includes(newStack) ? prev : [...prev, newStack],
-    );
     setSelectedStacks((prev) =>
       prev.includes(newStack) ? prev : [...prev, newStack],
     );
@@ -98,7 +66,6 @@ export function useWorkspaceLogModal({
   const handleFormSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      // Added basic validation
       if (!title.trim() || !desc.trim()) return;
 
       onSubmit({
@@ -118,16 +85,17 @@ export function useWorkspaceLogModal({
     setTitle,
     desc,
     setDesc,
-    selectedStacks,
-    customStacks,
-    uiUrl,
-    setUiUrl,
+    stacks: selectedStacks,
+    setStacks: setSelectedStacks,
     githubUrl,
     setGithubUrl,
     liveUrl,
     setLiveUrl,
+    figmaUrl: uiUrl,
+    setFigmaUrl: setUiUrl,
+    assetsUrl: liveUrl,
+    setAssetsUrl: setLiveUrl,
     placeholderIndex,
-    handleToggleStack,
     handleAddCustomStack,
     handleFormSubmit,
   };

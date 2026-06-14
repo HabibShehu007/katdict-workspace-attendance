@@ -26,6 +26,8 @@ export default function WorkspaceActiveLogCard({
 
   // 1. Drizzle-aware data extraction (Handling JSONB structure)
   const workData = d.workData || {};
+  const role = d.role || "web_development";
+  const isDesigner = role === "ui_ux_design";
 
   const title =
     d.projectTitle || workData.title || d.title || "Untitled Project";
@@ -127,18 +129,26 @@ export default function WorkspaceActiveLogCard({
               </div>
 
               <div
-                className={`flex items-center justify-between p-3.5 border rounded-xl ${isLate ? "bg-red-50/50 border-red-100" : "bg-emerald-50/50 border-emerald-100"}`}
+                className={`flex items-center justify-between p-3.5 border rounded-xl transition-colors ${
+                  isLate
+                    ? "bg-red-50/50 border-red-200 dark:bg-red-950/30 dark:border-red-900/50"
+                    : "bg-emerald-50/50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-900/50"
+                }`}
               >
                 <div className="flex items-center gap-2">
                   <AlertCircle
                     className={`w-4 h-4 ${isLate ? "text-red-500" : "text-emerald-500"}`}
                   />
-                  <span className="text-xs font-bold text-zinc-600">
+                  <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400">
                     Status
                   </span>
                 </div>
                 <span
-                  className={`text-[10px] font-black uppercase ${isLate ? "text-red-600" : "text-emerald-600"}`}
+                  className={`text-[10px] font-black uppercase ${
+                    isLate
+                      ? "text-red-600 dark:text-red-400"
+                      : "text-emerald-600 dark:text-emerald-400"
+                  }`}
                 >
                   {isLate ? "Late" : "On Time"}
                 </span>
@@ -151,14 +161,35 @@ export default function WorkspaceActiveLogCard({
               Resources
             </h4>
             <div className="flex flex-col gap-2.5">
-              {githubUrl && (
-                <LinkItem icon={GitBranch} label="GitHub" url={githubUrl} />
-              )}
-              {uiUrl && (
-                <LinkItem icon={Layers} label="UI Reference" url={uiUrl} />
-              )}
-              {liveUrl && (
-                <LinkItem icon={ExternalLink} label="Live Demo" url={liveUrl} />
+              {isDesigner ? (
+                <>
+                  {uiUrl && (
+                    <LinkItem icon={Layers} label="Figma Link" url={uiUrl} />
+                  )}
+                  {liveUrl && (
+                    <LinkItem
+                      icon={ExternalLink}
+                      label="Assets / Drive"
+                      url={liveUrl}
+                    />
+                  )}
+                </>
+              ) : (
+                <>
+                  {githubUrl && (
+                    <LinkItem icon={GitBranch} label="GitHub" url={githubUrl} />
+                  )}
+                  {uiUrl && (
+                    <LinkItem icon={Layers} label="UI Reference" url={uiUrl} />
+                  )}
+                  {liveUrl && (
+                    <LinkItem
+                      icon={ExternalLink}
+                      label="Live Demo"
+                      url={liveUrl}
+                    />
+                  )}
+                </>
               )}
             </div>
           </div>

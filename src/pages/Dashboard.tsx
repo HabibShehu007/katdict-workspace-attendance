@@ -26,7 +26,7 @@ export default function Dashboard() {
           formattedDate={formattedDate}
           isWithinWorkspace={isWithinWorkspace}
           // Dynamically pull from the user object we updated in the hook/API
-          streakCount={user?.current_streak || 0}
+          streakCount={user?.currentStreak || 0}
         />
 
         {/* GEOLOCATION BOUNDARY SECURITY LAYER */}
