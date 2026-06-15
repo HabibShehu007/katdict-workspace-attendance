@@ -1,7 +1,11 @@
 // types/auth.types.ts
 
 // 1. Core Roles
-export type UserRole = "admin" | "web_development" | "ui_ux_design";
+export type UserRole =
+  | "admin"
+  | "web_development"
+  | "ui_ux_design"
+  | "networking";
 
 // 2. Base Profile
 export interface UserProfile {
@@ -25,6 +29,10 @@ export interface WorkData {
   // UI/UX fields
   tools?: string[];
   assetsUrl?: string;
+  // Networking (New)
+  protocols?: string[]; // e.g., BGP, OSPF, VLAN, IPv6
+  infrastructureUrl?: string; // Link to topology (e.g., Lucidchart/Draw.io)
+  automationUrl?: string; // Link to scripts (e.g., Ansible/Python/Git)
   // Flexible access for any extra metadata
   [key: string]: any;
 }

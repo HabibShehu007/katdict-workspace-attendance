@@ -37,16 +37,28 @@ export default function WorkspaceLogs({
     submitWorkLog,
   } = useWorkspaceLog(dayName);
 
-  // console.log("Debug WorkspaceLogs:", { isLogComplete, logData });
-
   const [showOptionsModal, setShowOptionsModal] = useState(false);
   const [showLogFormModal, setShowLogFormModal] = useState(false);
+
+  // Define a map or a simple check to normalize the role
+  const getModalRole = (
+    role: string | undefined,
+  ): "web_development" | "ui_ux_design" | "networking" => {
+    if (role === "ui_ux_design") return "ui_ux_design";
+    if (role === "networking") return "networking";
+    // Default all others (including "admin") to web_development
+    return "web_development";
+  };
 
   const isPastNoonCutoff = () =>
     !BYPASS_TIME_GUARD && new Date().getHours() >= 12;
   const isClosed = isPastNoonCutoff();
 
   const typedLogData = logData as WorkspaceHistoryItem | null;
+
+  // Determine role for modal pass-through
+  // If user.role exists, use it; otherwise default to "web_development"
+  const currentUserRole = user?.role || "web_development";
 
   const handleSelectAttendanceOnly = async () => {
     if (await saveAttendanceOnly()) setShowOptionsModal(false);
@@ -102,7 +114,6 @@ export default function WorkspaceLogs({
           />
         ) : (
           <div className="w-full space-y-6">
-            {/* Status Header */}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -125,7 +136,6 @@ export default function WorkspaceLogs({
               </div>
             </motion.div>
 
-            {/* Content Switcher: Pending vs Active */}
             {isLogComplete && typedLogData?.title ? (
               <WorkspaceActiveLogCard
                 onModifyClick={handleOpenLogModalClick}
@@ -166,12 +176,10 @@ export default function WorkspaceLogs({
       />
       <WorkspaceLogModal
         isOpen={showLogFormModal}
-        isSubmitting={isSubmitting} // The modal can also use this to disable its own buttons
+        isSubmitting={isSubmitting}
         onClose={() => setShowLogFormModal(false)}
         initialData={typedLogData}
-        userRole={
-          user?.role === "ui_ux_design" ? "ui_ux_design" : "web_development"
-        }
+        userRole={getModalRole(user?.role)} // Use the safe mapping function
         onSubmit={async (data: any) => {
           if (await submitWorkLog(data)) setShowLogFormModal(false);
         }}

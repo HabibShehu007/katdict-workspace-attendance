@@ -1,5 +1,9 @@
 import { useState, useCallback } from "react";
-import { DEV_STACKS, DESIGN_STACKS } from "../../constants/techStacks";
+import {
+  DEV_STACKS,
+  DESIGN_STACKS,
+  NETWORKING_STACKS,
+} from "../../constants/techStacks";
 import type { UserRole } from "../../types/auth.types";
 
 export type TabType =
@@ -7,11 +11,13 @@ export type TabType =
   | "backend"
   | "fullstack"
   | "tools"
-  | "categories";
+  | "categories"
+  | "protocols"
+  | "hardware"
+  | "automation";
 
 interface UseTechStackSelectorProps {
-  userRole: Extract<UserRole, "web_development" | "ui_ux_design">;
-  // Made optional so you don't have to pass an empty array in the component
+  userRole: UserRole;
   value: string[];
   customStacks?: string[];
   onAddCustomStack: (stack: string) => void;
@@ -24,7 +30,11 @@ export function useTechStackSelector({
   onAddCustomStack,
 }: UseTechStackSelectorProps) {
   const [activeTab, setActiveTab] = useState<TabType>(
-    userRole === "ui_ux_design" ? "tools" : "frontend",
+    userRole === "ui_ux_design"
+      ? "tools"
+      : userRole === "networking"
+        ? "protocols"
+        : "frontend",
   );
   const [customInput, setCustomInput] = useState("");
 
@@ -32,6 +42,7 @@ export function useTechStackSelector({
     const all = (list: string[]) =>
       Array.from(new Set([...list, ...customStacks, ...value]));
 
+    // 1. UI/UX Case
     if (userRole === "ui_ux_design") {
       const { tools, categories } = DESIGN_STACKS;
       const optionsMap: Record<string, string[]> = {
@@ -41,6 +52,20 @@ export function useTechStackSelector({
       return optionsMap[activeTab] || all([...tools, ...categories]);
     }
 
+    // 2. Networking Case
+    if (userRole === "networking") {
+      const { protocols, hardware, automation } = NETWORKING_STACKS;
+      const optionsMap: Record<string, string[]> = {
+        protocols: all(protocols),
+        hardware: all(hardware),
+        automation: all(automation),
+      };
+      return (
+        optionsMap[activeTab] || all([...protocols, ...hardware, ...automation])
+      );
+    }
+
+    // 3. Web Development Case
     const { frontend, backend } = DEV_STACKS;
     const optionsMap: Record<string, string[]> = {
       frontend: all(frontend),

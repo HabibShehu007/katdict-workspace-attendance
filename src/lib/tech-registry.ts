@@ -64,6 +64,27 @@ export const TECH_REGISTRY: Record<string, TechStack> = {
   vite: { label: "Vite", color: "purple", slug: "vite" },
   graphql: { label: "GraphQL", color: "pink", slug: "graphql" },
   firebase: { label: "Firebase", color: "yellow", slug: "firebase" },
+
+  // Networking: Protocols
+  tcp: { label: "TCP/IP", color: "sky", slug: "transmissioncontrolprotocol" },
+  dns: { label: "DNS", color: "blue", slug: "dns" },
+  http: { label: "HTTP/HTTPS", color: "zinc", slug: "http" },
+  ssh: { label: "SSH", color: "amber", slug: "ssh" },
+  vpn: { label: "VPN", color: "indigo", slug: "wireguard" },
+
+  // Networking: Hardware / Infra
+  cisco: { label: "Cisco", color: "sky", slug: "cisco" },
+  mikrotik: { label: "MikroTik", color: "blue", slug: "mikrotik" },
+  ubiquiti: { label: "Ubiquiti", color: "sky", slug: "ubiquiti" },
+  juniper: { label: "Juniper", color: "red", slug: "junipernetworks" },
+  firewall: { label: "Firewall", color: "red", slug: "pfsense" },
+
+  // Networking: Automation & Monitoring
+  ansible: { label: "Ansible", color: "red", slug: "ansible" },
+  zabbix: { label: "Zabbix", color: "blue", slug: "zabbix" },
+  grafana: { label: "Grafana", color: "orange", slug: "grafana" },
+  prometheus: { label: "Prometheus", color: "orange", slug: "prometheus" },
+  wireshark: { label: "Wireshark", color: "blue", slug: "wireshark" },
 };
 
 /**

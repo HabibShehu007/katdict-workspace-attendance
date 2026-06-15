@@ -7,13 +7,14 @@ import {
   Check,
   PenTool,
   LayoutTemplate,
+  Network,
 } from "lucide-react";
 import { useTechStackSelector } from "../../hooks/WorkSpaceLog-Components-hooks/useTechStackSelector";
 import type { TabType } from "../../hooks/WorkSpaceLog-Components-hooks/useTechStackSelector";
 import type { UserRole } from "../../types/auth.types";
 
 interface TechStackSelectorProps {
-  userRole: Extract<UserRole, "web_development" | "ui_ux_design">;
+  userRole: UserRole;
   value: string[];
   onChange: (value: string[]) => void;
 }
@@ -23,7 +24,6 @@ export default function TechStackSelector({
   value = [],
   onChange,
 }: TechStackSelectorProps) {
-  // We hook into your logic, passing a helper to handle additions directly through the onChange prop
   const {
     activeTab,
     setActiveTab,
@@ -37,12 +37,23 @@ export default function TechStackSelector({
     onAddCustomStack: (stack) => onChange([...value, stack]),
   });
 
+  // Helper to determine tabs based on role
+  const getTabs = (): TabType[] => {
+    if (userRole === "ui_ux_design") return ["tools", "categories"];
+    if (userRole === "networking")
+      return ["protocols", "hardware", "automation"];
+    return ["frontend", "backend", "fullstack"];
+  };
+
+  const tabs = getTabs();
+
   const toggleStack = (stack: string) => {
     const nextValue = value.includes(stack)
       ? value.filter((s) => s !== stack)
       : [...value, stack];
-    onChange(nextValue); // This sends a fresh array reference
+    onChange(nextValue);
   };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -58,14 +69,13 @@ export default function TechStackSelector({
         <label className="text-xs font-black text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5 uppercase tracking-wider">
           {userRole === "ui_ux_design"
             ? "Design Tools & Categories"
-            : "Technologies Used"}
+            : userRole === "networking"
+              ? "Protocols & Infrastructure"
+              : "Technologies Used"}
         </label>
 
         <div className="flex p-0.5 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl text-[11px] font-bold self-start sm:self-auto">
-          {(userRole === "ui_ux_design"
-            ? (["tools", "categories"] as TabType[])
-            : (["frontend", "backend", "fullstack"] as TabType[])
-          ).map((tab) => (
+          {tabs.map((tab) => (
             <button
               type="button"
               key={tab}
@@ -81,6 +91,9 @@ export default function TechStackSelector({
               {tab === "fullstack" && <Terminal className="w-3 h-3" />}
               {tab === "tools" && <PenTool className="w-3 h-3" />}
               {tab === "categories" && <LayoutTemplate className="w-3 h-3" />}
+              {tab === "protocols" && <Network className="w-3 h-3" />}
+              {tab === "hardware" && <Server className="w-3 h-3" />}
+              {tab === "automation" && <Terminal className="w-3 h-3" />}
               <span>{tab === "fullstack" ? "Full Stack" : tab}</span>
             </button>
           ))}
@@ -113,11 +126,7 @@ export default function TechStackSelector({
       <div className="flex gap-2">
         <input
           type="text"
-          placeholder={
-            userRole === "ui_ux_design"
-              ? "Add custom tool..."
-              : "Can't find your stack?..."
-          }
+          placeholder="Add custom item..."
           value={customInput}
           onChange={(e) => setCustomInput(e.target.value)}
           onKeyDown={handleKeyDown}

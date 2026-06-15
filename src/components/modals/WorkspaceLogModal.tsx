@@ -11,7 +11,10 @@ interface Props {
   onSubmit: (data: any) => void;
   isSubmitting?: boolean;
   initialData: WorkspaceHistoryItem | null;
-  userRole: Extract<UserRole, "web_development" | "ui_ux_design">;
+  userRole: Extract<
+    UserRole,
+    "web_development" | "ui_ux_design" | "networking"
+  >;
 }
 
 export default function WorkspaceLogModal(props: Props) {

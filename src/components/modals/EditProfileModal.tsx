@@ -25,10 +25,21 @@ export default function EditProfileModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // We don't send fullName to the API since it's locked
     const { fullName, ...updateData } = formData;
     const success = await updateProfile(updateData);
     if (success) onClose();
+  };
+
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case "ui_ux_design":
+        return "UI/UX & GRAPHIC DESIGN";
+      case "networking":
+        return "NETWORKING";
+      case "web_development":
+      default:
+        return "WEB DEVELOPMENT";
+    }
   };
 
   return (
@@ -88,17 +99,13 @@ export default function EditProfileModal({
                   <input
                     type="text"
                     disabled
-                    // Use your helper or just display the value directly
-                    value={
-                      formData.role === "ui_ux_design"
-                        ? "UI/UX & GRAPHIC DESIGN"
-                        : "WEB DEVELOPMENT"
-                    }
+                    value={getRoleLabel(formData.role)}
                     className="w-full bg-zinc-100 dark:bg-zinc-950 pl-10 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-500 cursor-not-allowed font-medium"
                   />
                 </div>
               </div>
 
+              {/* BIO FIELD */}
               <div>
                 <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">
                   Bio

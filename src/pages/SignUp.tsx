@@ -150,6 +150,7 @@ export default function SignUp() {
                   </option>
                   <option value="web_development">Web Development</option>
                   <option value="ui_ux_design">UI/UX & Graphic Design</option>
+                  <option value="networking">Networking</option>
                 </select>
               </div>
             </div>

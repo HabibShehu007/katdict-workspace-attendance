@@ -7,7 +7,7 @@ interface ProfileDisplayProps {
   user: UserProfile;
   onEditClick: () => void;
   onAvatarUpdate?: (file: File) => void;
-  isUpdating?: boolean; // Added this prop
+  isUpdating?: boolean;
 }
 
 export default function ProfileDisplay({
@@ -18,7 +18,6 @@ export default function ProfileDisplay({
 }: ProfileDisplayProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Add this helper to map your database roles to display labels
   const getRoleLabel = (role: string) => {
     const cleanRole = role?.trim();
     switch (cleanRole) {
@@ -26,8 +25,22 @@ export default function ProfileDisplay({
         return "GRAPHIC & UI/UX DESIGN";
       case "web_development":
         return "WEB DEVELOPMENT";
+      case "networking":
+        return "NETWORKING";
       default:
-        return cleanRole || "DEVELOPER";
+        return cleanRole?.replace("_", " ").toUpperCase() || "DEVELOPER";
+    }
+  };
+
+  // Helper to dynamically color the role text based on specialty
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case "ui_ux_design":
+        return "text-purple-600 dark:text-purple-400";
+      case "networking":
+        return "text-sky-600 dark:text-sky-400";
+      default:
+        return "text-emerald-600 dark:text-emerald-400";
     }
   };
 
@@ -53,11 +66,10 @@ export default function ProfileDisplay({
             )}
           </div>
 
-          {/* Upload Trigger - Shows Loader when updating */}
           <button
             disabled={isUpdating}
             onClick={() => fileInputRef.current?.click()}
-            className="absolute bottom-0 right-0 p-2 bg-emerald-600 text-white rounded-full border-4 border-white dark:border-zinc-900 hover:bg-emerald-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="absolute bottom-0 right-0 p-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-full border-4 border-white dark:border-zinc-900 hover:opacity-90 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isUpdating ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -77,7 +89,9 @@ export default function ProfileDisplay({
         <h2 className="text-xl font-black text-zinc-900 dark:text-white">
           {user.fullName}
         </h2>
-        <p className="text-sm text-emerald-600 dark:text-emerald-400 font-bold mt-1">
+
+        {/* Role label with dynamic color */}
+        <p className={`text-sm font-bold mt-1 ${getRoleColor(user.role)}`}>
           {getRoleLabel(user.role)}
         </p>
 

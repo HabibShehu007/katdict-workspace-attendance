@@ -11,6 +11,12 @@ interface DesignStack {
   categories: string[];
 }
 
+interface NetworkingStack {
+  protocols: string[];
+  hardware: string[];
+  automation: string[];
+}
+
 export const DEV_STACKS: DevStack = {
   frontend: [
     "HTML5",
@@ -58,6 +64,41 @@ export const DESIGN_STACKS: DesignStack = {
   ],
 } as const;
 
+export const NETWORKING_STACKS: NetworkingStack = {
+  protocols: [
+    "BGP",
+    "OSPF",
+    "EIGRP",
+    "IPv6",
+    "MPLS",
+    "VLAN",
+    "DNS",
+    "DHCP",
+    "VPN",
+  ],
+  hardware: [
+    "Cisco",
+    "Juniper",
+    "Aruba",
+    "Fortinet",
+    "Palo Alto",
+    "MikroTik",
+    "Ubiquiti",
+    "Switches",
+    "Routers",
+  ],
+  automation: [
+    "Ansible",
+    "Terraform",
+    "Python",
+    "Bash",
+    "Netmiko",
+    "NAPALM",
+    "YAML",
+    "Git",
+  ],
+} as const;
+
 export const PLACEHOLDER_SUGGESTIONS: Record<string, string[]> = {
   web_development: [
     "Building user authentication layers...",
@@ -71,5 +112,12 @@ export const PLACEHOLDER_SUGGESTIONS: Record<string, string[]> = {
     "Creating interactive prototypes...",
     "Optimizing vector assets for web...",
     "Polishing interface animation curves...",
+  ],
+  networking: [
+    "Configuring OSPF routing protocols...",
+    "Updating firewall access control lists...",
+    "Automating switch port provisioning...",
+    "Analyzing network traffic patterns...",
+    "Deploying infrastructure as code...",
   ],
 } as const;

@@ -5,23 +5,27 @@ import type { WorkspaceHistoryItem } from "../../types/auth.types";
 export function usePerformanceStats(historyLogs: WorkspaceHistoryItem[]) {
   return useMemo(() => {
     if (!historyLogs || historyLogs.length === 0) return null;
+
     const totalDays = historyLogs.length;
 
+    // We use the camelCase properties defined in your WorkspaceHistoryItem interface
     const avgPunctuality =
       historyLogs.reduce(
         (acc, log) =>
-          acc +
-          (log.is_log_empty || !log.is_on_site ? 0 : !log.is_late ? 100 : 0),
+          acc + (log.isLogEmpty || !log.isOnSite ? 0 : !log.isLate ? 100 : 0),
         0,
       ) / totalDays;
+
     const avgCompletion =
       historyLogs.reduce(
-        (acc, log) => acc + (log.is_log_empty || !log.is_on_site ? 0 : 100),
+        (acc, log) => acc + (log.isLogEmpty || !log.isOnSite ? 0 : 100),
         0,
       ) / totalDays;
+
     const successfulDays = historyLogs.filter(
-      (log) => !log.is_log_empty && log.is_on_site,
+      (log) => !log.isLogEmpty && log.isOnSite,
     ).length;
+
     const consistency = (successfulDays / totalDays) * 100;
 
     return {
@@ -31,7 +35,7 @@ export function usePerformanceStats(historyLogs: WorkspaceHistoryItem[]) {
       overallGrade: Math.round(
         (avgPunctuality + avgCompletion + consistency) / 3,
       ),
-      isLocked: new Date().getDay() !== 5, // Example lock logic
+      isLocked: new Date().getDay() !== 5, // Keep your Friday lock logic
     };
   }, [historyLogs]);
 }

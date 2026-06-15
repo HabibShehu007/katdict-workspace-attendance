@@ -11,16 +11,31 @@ export default function ProfileDetails({
   onEditClick,
 }: ProfileDetailsProps) {
   const getRoleLabel = (role: string) => {
-    const cleanRole = role?.trim();
-    switch (cleanRole) {
+    switch (role) {
       case "ui_ux_design":
         return "GRAPHIC & UI/UX DESIGN";
       case "web_development":
         return "WEB DEVELOPMENT";
+      case "networking":
+        return "NETWORKING";
       default:
-        return cleanRole || "DEVELOPER";
+        return role?.replace("_", " ").toUpperCase() || "DEVELOPER";
     }
   };
+
+  // Maps roles to specific colors for consistent UI theming
+  const getAccentColor = (role: string) => {
+    switch (role) {
+      case "ui_ux_design":
+        return "border-purple-500 text-purple-600";
+      case "networking":
+        return "border-sky-500 text-sky-600";
+      default:
+        return "border-emerald-500 text-emerald-600";
+    }
+  };
+
+  const accent = getAccentColor(user.role);
 
   return (
     <div className="space-y-6">
@@ -34,7 +49,7 @@ export default function ProfileDetails({
             </span>
           </div>
           <p className="text-4xl font-black text-emerald-950 dark:text-white tracking-tighter">
-            {user.current_streak || 0}
+            {user.currentStreak || 0}
           </p>
           <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 font-bold mt-1">
             Days active
@@ -49,7 +64,7 @@ export default function ProfileDetails({
             </span>
           </div>
           <p className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter">
-            {user.highest_streak || 0}
+            {user.highestStreak || 0}
           </p>
           <p className="text-xs text-zinc-500/70 dark:text-zinc-400/70 font-bold mt-1">
             Days achieved
@@ -65,7 +80,7 @@ export default function ProfileDetails({
           </h3>
           <button
             onClick={onEditClick}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-black uppercase tracking-widest text-emerald-600 hover:text-white hover:bg-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 rounded-xl transition-all border border-emerald-100 dark:border-emerald-900"
+            className={`flex items-center gap-2 px-4 py-2 text-xs font-black uppercase tracking-widest hover:text-white hover:bg-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 rounded-xl transition-all border border-emerald-100 dark:border-emerald-900`}
           >
             <Edit2 className="w-3.5 h-3.5" /> Edit Bio
           </button>
@@ -73,8 +88,10 @@ export default function ProfileDetails({
 
         <div className="space-y-10">
           {/* Enhanced Bold Bio */}
-          <div className="relative pl-6 border-l-4 border-emerald-500">
-            <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] mb-4">
+          <div className={`relative pl-6 border-l-4 ${accent.split(" ")[0]}`}>
+            <div
+              className={`flex items-center gap-2 ${accent.split(" ")[1]} text-[10px] font-black uppercase tracking-[0.2em] mb-4`}
+            >
               <BookOpen className="w-3.5 h-3.5" />{" "}
               <span>Professional Summary</span>
             </div>

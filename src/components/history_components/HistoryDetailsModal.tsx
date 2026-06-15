@@ -3,6 +3,7 @@ import { X, Calendar, Clock } from "lucide-react";
 import { useLogRole } from "../../hooks/context_hooks/useLogRole";
 import { DevDetailView } from "./renderers/DevDetailView";
 import { DesignDetailView } from "./renderers/DesignDetailView";
+import { NetworkingDetailView } from "./renderers/NetworkingDetailView"; // Import the new view
 import type { WorkspaceHistoryItem } from "../../context/AuthContext";
 
 interface HistoryDetailsModalProps {
@@ -18,6 +19,20 @@ export default function HistoryDetailsModal({
 }: HistoryDetailsModalProps) {
   const role = useLogRole(log);
   if (!isOpen || !log) return null;
+
+  // Helper to render the correct view based on the role
+  const renderDetailView = () => {
+    switch (role) {
+      case "dev":
+        return <DevDetailView data={log} />;
+      case "design":
+        return <DesignDetailView data={log} />;
+      case "networking":
+        return <NetworkingDetailView data={log} />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -62,11 +77,7 @@ export default function HistoryDetailsModal({
             </p>
 
             {/* Dynamic Injector */}
-            {role === "dev" ? (
-              <DevDetailView data={log} />
-            ) : (
-              <DesignDetailView data={log} />
-            )}
+            {renderDetailView()}
           </div>
         </motion.div>
       </motion.div>

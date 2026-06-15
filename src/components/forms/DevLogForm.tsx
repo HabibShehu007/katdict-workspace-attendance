@@ -12,6 +12,7 @@ interface DevLogFormProps {
   setLiveUrl: (val: string) => void;
   handleFormSubmit: (e: React.FormEvent) => void;
   isSubmitting: boolean;
+
   // Add these two
   stacks: string[];
   setStacks: (val: string[]) => void;
@@ -79,22 +80,34 @@ export default function DevLogForm({
           <input
             type="url"
             required
+            placeholder="https://github.com/username/repo"
             value={githubUrl}
             onChange={(e) => setGithubUrl(e.target.value)}
             className={`w-full text-sm px-3.5 py-2.5 border rounded-xl outline-none transition-all ${!isGithubValid ? "border-red-500 focus:ring-1 focus:ring-red-500" : "border-zinc-200 dark:border-zinc-700 focus:ring-2 focus:ring-emerald-500"}`}
           />
+          {!isGithubValid && (
+            <p className="text-[10px] text-red-500 font-bold">
+              Must be a valid GitHub URL starting with https://github.com
+            </p>
+          )}
         </div>
 
         <div className="space-y-1.5">
           <label className="text-xs font-black text-zinc-700 flex items-center gap-1.5 uppercase tracking-wider">
-            <ExternalLink className="w-3.5 h-3.5" /> Live Demo (Optional)
+            <ExternalLink className="w-3.5 h-3.5" /> Project Reference
+            (Optional)
           </label>
           <input
             type="url"
+            placeholder="Live demo, Figma, or design board URL"
             value={liveUrl}
             onChange={(e) => setLiveUrl(e.target.value)}
             className="w-full text-sm px-3.5 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
           />
+          <p className="text-[10px] text-zinc-400">
+            Link to your live site, Figma file, Pinterest board, or project
+            documentation.
+          </p>
         </div>
       </div>
 

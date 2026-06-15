@@ -6,14 +6,11 @@ interface HistoryTableProps {
 
 export function HistoryTable({ logs }: HistoryTableProps) {
   // Defensive helper to format time
-  const formatTime = (timeStr: string) => {
+  const formatTime = (timeStr: string | undefined) => {
     if (!timeStr) return "N/A";
-
     try {
-      // Strips anything that isn't a digit or colon to handle "09:00 AM" or "09:00:00"
       const cleanTime = timeStr.replace(/[^0-9:]/g, "");
       const [hours, minutes] = cleanTime.split(":");
-
       if (!hours) return timeStr;
 
       const date = new Date();
@@ -23,18 +20,16 @@ export function HistoryTable({ logs }: HistoryTableProps) {
         hour: "2-digit",
         minute: "2-digit",
       });
-    } catch (e) {
-      return timeStr; // Fallback if parsing fails
+    } catch {
+      return timeStr;
     }
   };
 
   // Defensive helper to format date
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr: string | undefined) => {
     if (!dateStr || !dateStr.includes("-")) return "N/A";
-
     try {
       const [year, month, day] = dateStr.split("-");
-      // Use UTC parts to avoid timezone-based day shifts
       const date = new Date(
         Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)),
       );
@@ -42,7 +37,7 @@ export function HistoryTable({ logs }: HistoryTableProps) {
         month: "short",
         day: "numeric",
       });
-    } catch (e) {
+    } catch {
       return dateStr;
     }
   };
@@ -65,23 +60,28 @@ export function HistoryTable({ logs }: HistoryTableProps) {
               className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
             >
               <td className="py-4 font-medium text-zinc-900 dark:text-white">
-                {log.project_title || "Unnamed Project"}
+                {/* Drizzle-aligned: projectTitle */}
+                {log.projectTitle || "Unnamed Project"}
               </td>
               <td className="py-4 text-zinc-500">
-                {formatDate(log.formatted_date)}
+                {/* Drizzle-aligned: logDate */}
+                {formatDate(log.logDate)}
               </td>
               <td className="py-4 text-zinc-500 font-mono">
-                {formatTime(log.arrival_time)}
+                {/* Drizzle-aligned: Accessing nested workData for time if needed, 
+                    assuming log.arrivalTime exists or fallback */}
+                {formatTime((log.workData as any)?.arrivalTime)}
               </td>
               <td className="py-4 text-right">
                 <span
                   className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-                    log.is_late
+                    log.isLate
                       ? "bg-rose-100 text-rose-600 dark:bg-rose-900/20"
                       : "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20"
                   }`}
                 >
-                  {log.is_late ? "Late" : "On Time"}
+                  {/* Drizzle-aligned: isLate */}
+                  {log.isLate ? "Late" : "On Time"}
                 </span>
               </td>
             </tr>
