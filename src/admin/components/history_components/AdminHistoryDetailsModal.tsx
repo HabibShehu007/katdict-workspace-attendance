@@ -11,6 +11,9 @@ import {
   ExternalLink,
   User,
   Shield,
+  Network,
+  Server,
+  Terminal,
 } from "lucide-react";
 import { type AdminLogItem } from "../../types/admin.types";
 
@@ -40,6 +43,9 @@ export default function AdminHistoryDetailsModal({
       return timeString;
     }
   };
+
+  // Safely extract workData - API might return it as 'work_data' or 'workData'
+  const workData = (log as any).work_data || (log as any).workData || {};
 
   return (
     <AnimatePresence>
@@ -134,7 +140,7 @@ export default function AdminHistoryDetailsModal({
                       <Code2 className="w-3 h-3" /> Tech Stack
                     </span>
                     <div className="flex flex-wrap gap-1.5">
-                      {log.tech_stacks?.map((t) => (
+                      {(workData.stacks || []).map((t: string) => (
                         <span
                           key={t}
                           className="text-[10px] font-bold px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-md"
@@ -143,9 +149,11 @@ export default function AdminHistoryDetailsModal({
                         </span>
                       ))}
                     </div>
-                    {log.github_url && (
+                    {workData.githubUrl && (
                       <a
-                        href={log.github_url}
+                        href={workData.githubUrl}
+                        target="_blank"
+                        rel="noreferrer"
                         className="flex items-center gap-2 text-xs font-bold text-emerald-600"
                       >
                         <GitBranch className="w-3.5 h-3.5" /> Repository
@@ -159,14 +167,79 @@ export default function AdminHistoryDetailsModal({
                     <span className="text-[10px] font-bold text-zinc-400 uppercase flex items-center gap-1">
                       <Layers className="w-3 h-3" /> Design Assets
                     </span>
-                    {log.asset_drive_url && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {(workData.stacks || []).map((t: string) => (
+                        <span
+                          key={t}
+                          className="text-[10px] font-bold px-2 py-1 bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300 rounded-md"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                    {workData.uiUrl && (
                       <a
-                        href={log.asset_drive_url}
+                        href={workData.uiUrl}
+                        target="_blank"
+                        rel="noreferrer"
                         className="flex items-center gap-2 text-xs font-bold text-purple-600"
                       >
-                        <ExternalLink className="w-3.5 h-3.5" /> Asset Drive
+                        <ExternalLink className="w-3.5 h-3.5" /> Figma Link
                       </a>
                     )}
+                    {workData.liveUrl && (
+                      <a
+                        href={workData.liveUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-2 text-xs font-bold text-zinc-600"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" /> Asset Drive / Assets
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                {log.user_role === "networking" && (
+                  <div className="space-y-4 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase flex items-center gap-1">
+                      <Network className="w-3 h-3" /> Networking Details
+                    </span>
+                    
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap gap-1.5">
+                        {(workData.stacks || []).map((t: string) => (
+                          <span
+                            key={t}
+                            className="text-[10px] font-bold px-2 py-1 bg-sky-50 dark:bg-sky-950/30 text-sky-700 dark:text-sky-300 rounded-md"
+                          >
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+
+                      {workData.infrastructureUrl && (
+                        <a
+                          href={workData.infrastructureUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-2 text-xs font-bold text-sky-600"
+                        >
+                          <Server className="w-3.5 h-3.5" /> Infrastructure Map
+                        </a>
+                      )}
+                      
+                      {workData.automationUrl && (
+                        <a
+                          href={workData.automationUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-2 text-xs font-bold text-zinc-600"
+                        >
+                          <Terminal className="w-3.5 h-3.5" /> Automation Scripts
+                        </a>
+                      )}
+                    </div>
                   </div>
                 )}
               </>
@@ -181,3 +254,4 @@ export default function AdminHistoryDetailsModal({
     </AnimatePresence>
   );
 }
+

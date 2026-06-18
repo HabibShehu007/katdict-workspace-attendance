@@ -1,46 +1,50 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { useThemeStore } from "./store/useThemeStore";
 import { useEffect } from "react";
+import React from "react";
 
-// Page Imports
+// Pages
 import Onboarding from "./pages/Onboarding";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
-
-//  Dashboard and sub-pages imports
 import Dashboard from "./pages/Dashboard";
 import WorkspaceHistory from "./pages/WorkspaceHistory";
 import Performance from "./pages/Performance";
 import ProfilePage from "./pages/Profile";
 
 // Admin Pages
+import AdminLogin from "./admin/pages/AdminLogin";
 import AdminDashboard from "./admin/pages/AdminDashboard";
 import AdminHistory from "./admin/pages/AdminHistory";
 import UserManagement from "./admin/pages/UserManagement";
 
+const ProtectedRoute = ({
+  children,
+  adminOnly = false,
+}: {
+  children: React.ReactNode;
+  adminOnly?: boolean;
+}) => {
+  const { user, isLoading } = useAuth();
+  if (isLoading) return <div>Loading...</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (adminOnly && !user.isAdmin) return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
+};
+
 const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-    },
-  },
+  defaultOptions: { queries: { refetchOnWindowFocus: false, retry: 1 } },
 });
 
 function App() {
   const { theme } = useThemeStore();
-
-  // Sync theme class with HTML root on mount
   useEffect(() => {
-    const root = window.document.documentElement;
-    if (theme === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
+    theme === "dark"
+      ? document.documentElement.classList.add("dark")
+      : document.documentElement.classList.remove("dark");
   }, [theme]);
 
   return (
@@ -49,27 +53,74 @@ function App() {
         <AuthProvider>
           <div className="min-h-screen bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 transition-colors duration-100">
             <Routes>
-              {/* The entry point of the app */}
+              {/* Public Routes */}
               <Route path="/" element={<Onboarding />} />
-
-              {/* Auth Routes */}
               <Route path="/signup" element={<SignUp />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
 
-              {/* Dashboard and sub-pages Route */}
-              <Route path="/dashboard/*" element={<Dashboard />} />
-              <Route path="/history" element={<WorkspaceHistory />} />
-              <Route path="/performance" element={<Performance />} />
-              <Route path="/profile" element={<ProfilePage />} />
+              {/* User Routes */}
+              <Route
+                path="/dashboard/*"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/history"
+                element={
+                  <ProtectedRoute>
+                    <WorkspaceHistory />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/performance"
+                element={
+                  <ProtectedRoute>
+                    <Performance />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Admin Routes */}
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/admin/history" element={<AdminHistory />} />
-              <Route path="/admin/users" element={<UserManagement />} />
-              {/* Fallback to onboarding if route doesn't exist */}
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/history"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminHistory />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <UserManagement />
+                  </ProtectedRoute>
+                }
+              />
+
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-
             <Toaster
               position="top-center"
               richColors

@@ -18,6 +18,7 @@ export interface UserProfile {
   role: UserRole;
   avatarUrl?: string | null;
   bio?: string | null;
+  isAdmin: boolean;
 }
 
 export interface WorkData {
@@ -59,6 +60,7 @@ export interface WorkspaceHistoryItem {
   githubUrl?: string;
   liveUrl?: string;
   updatedAt: string;
+  role?: string;
 }
 
 export interface AttendanceStatus {

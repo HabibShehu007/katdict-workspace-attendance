@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { Navigate } from "react-router-dom"; // Added for secure redirection
 import { AnimatePresence, motion } from "framer-motion";
 import AdminSidebar from "../navigation/AdminSidebar";
 import AdminMobileNav from "../navigation/AdminMobileNav";
 import ThemeToggle from "../../components/app/ThemeToggle";
+import { useAuth } from "../hooks/admin_hooks/useAuth";
+import { getAdminTitle } from "../utils/adminHelpers";
 
 interface AdminDashboardLayoutProps {
   children: React.ReactNode;
@@ -12,20 +15,37 @@ export default function AdminDashboardLayout({
   children,
 }: AdminDashboardLayoutProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { admin, loading } = useAuth(); // Destructured loading
+
+  // 1. Handle Loading State
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-900">
+        <div className="animate-pulse text-emerald-600 font-medium">
+          Authenticating...
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Handle Unauthorized Access
+  if (!admin) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  const adminTitle = getAdminTitle(admin.managed_role);
 
   return (
-    // Updated: Uses bg-white for light and bg-zinc-950 for dark
     <div className="min-h-screen w-full flex flex-col md:flex-row bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 transition-colors duration-400 ease-in-out">
-      {/* Desktop Persistent Admin Sidebar */}
-      {/* Updated: Border color adapts to theme */}
+      {/* Sidebar - Persistent on Desktop */}
       <div className="hidden md:block h-screen sticky top-0 shrink-0 border-r border-zinc-200 dark:border-zinc-800">
         <AdminSidebar />
       </div>
 
-      {/* Mobile Top Header Display */}
+      {/* Mobile Nav Toggle */}
       <AdminMobileNav isOpen={isMobileOpen} setIsOpen={setIsMobileOpen} />
 
-      {/* Mobile Sidebar Drawer Overlay */}
+      {/* Mobile Sidebar Overlay & Animation */}
       <AnimatePresence>
         {isMobileOpen && (
           <>
@@ -41,7 +61,6 @@ export default function AdminDashboardLayout({
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              // Updated: background and border are now theme-aware
               className="md:hidden fixed inset-y-0 left-0 w-64 z-50 shadow-2xl h-full bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800"
             >
               <AdminSidebar onCloseMobile={() => setIsMobileOpen(false)} />
@@ -50,14 +69,16 @@ export default function AdminDashboardLayout({
         )}
       </AnimatePresence>
 
-      {/* Admin Content Canvas */}
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Header: Updated background and border */}
-        <header className="hidden md:flex w-full h-16 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 items-center justify-end px-8 sticky top-0 z-30 transition-colors duration-400">
+        <header className="hidden md:flex w-full h-16 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 items-center justify-between px-8 sticky top-0 z-30">
           <div className="flex items-center gap-4">
-            <span className="text-xs font-mono text-emerald-600 dark:text-emerald-500 uppercase tracking-widest bg-emerald-100 dark:bg-emerald-500/10 px-2 py-1 rounded">
-              Admin Mode
+            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-500 bg-emerald-100 dark:bg-emerald-500/10 px-3 py-1 rounded-lg border border-emerald-500/20">
+              {adminTitle || "Admin"}
             </span>
+          </div>
+
+          <div className="flex items-center gap-4">
             <ThemeToggle />
           </div>
         </header>

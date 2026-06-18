@@ -1,56 +1,69 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { neon } from "@neondatabase/serverless";
+import { db } from "../../src/db/index";
+import { users, attendanceLogs } from "../../src/db/schema"; // Use 'attendanceLogs' as named in schema
+import { eq, inArray, and, sql } from "drizzle-orm";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const sql = neon(process.env.DATABASE_URL!);
   const { action } = req.query;
+  const targetRoles = ["web_development", "ui_ux_design", "networking"];
 
   try {
-    // 1. GET ALL LOGS (Filtered to exclude admins)
+    // 1. GET ALL LOGS
     if (!action || action === "all") {
-      const logs = await sql`
-        SELECT 
-            l.*, 
-            u.full_name as user_name, 
-            u.email as user_email, 
-            u.role as user_role 
-        FROM daily_attendance_logs l 
-        JOIN users u ON l.user_id = u.id 
-        WHERE u.role != 'admin' 
-        ORDER BY l.log_date DESC 
-        LIMIT 1000
-      `;
+      const logs = await db
+        .select({
+          id: attendanceLogs.id,
+          projectTitle: attendanceLogs.projectTitle, // Use camelCase from schema
+          arrivalTime: attendanceLogs.arrivalTime,
+          logDate: attendanceLogs.logDate,
+          userName: users.fullName,
+          userEmail: users.email,
+          userRole: users.role,
+        })
+        .from(attendanceLogs) // Fixed table name
+        .leftJoin(users, eq(attendanceLogs.userId, users.id)) // Fixed column names
+        .where(inArray(users.role, targetRoles))
+        .orderBy(attendanceLogs.logDate)
+        .limit(1000);
+
       return res.status(200).json(logs);
     }
 
     // 2. GET DASHBOARD STATS
     if (action === "stats") {
-      // It is good practice to filter admins here too if you only want to track team metrics
-      const [stats] = await sql`
-        SELECT 
-            (SELECT COUNT(*)::int FROM users WHERE role != 'admin') as total_users, 
-            (SELECT COUNT(DISTINCT l.user_id)::int FROM daily_attendance_logs l 
-             JOIN users u ON l.user_id = u.id 
-             WHERE l.log_date = CURRENT_DATE AND u.role != 'admin') as present_users, 
-            (SELECT COUNT(*)::int FROM daily_attendance_logs l 
-             JOIN users u ON l.user_id = u.id 
-             WHERE l.log_date = CURRENT_DATE AND l.is_log_empty = false AND u.role != 'admin') as active_logs
-      `;
+      const totalUsers = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(users)
+        .where(inArray(users.role, targetRoles));
 
-      // Inside your stats action in logs.ts
-      const recentLogs = await sql`
-  SELECT l.id, l.project_title, l.arrival_time, u.full_name as user_name, u.role as user_role 
-  FROM daily_attendance_logs l 
-  JOIN users u ON l.user_id = u.id 
-  WHERE l.log_date = CURRENT_DATE AND u.role != 'admin'
-  ORDER BY l.arrival_time DESC 
-  LIMIT 4
-`;
-      return res.status(200).json({ ...stats, recentLogs });
+      const recentLogs = await db
+        .select({
+          id: attendanceLogs.id,
+          projectTitle: attendanceLogs.projectTitle,
+          arrivalTime: attendanceLogs.arrivalTime,
+          userName: users.fullName,
+          userRole: users.role,
+        })
+        .from(attendanceLogs)
+        .leftJoin(users, eq(attendanceLogs.userId, users.id)) // Fixed column names
+        .where(
+          and(
+            eq(attendanceLogs.logDate, sql`CURRENT_DATE`), // Fixed column names
+            inArray(users.role, targetRoles),
+          ),
+        )
+        .orderBy(attendanceLogs.arrivalTime)
+        .limit(4);
+
+      return res.status(200).json({
+        total_users: totalUsers[0].count,
+        recentLogs,
+      });
     }
 
     return res.status(400).json({ error: "Invalid action" });
   } catch (error) {
+    console.error(error);
     return res.status(500).json({ error: "Database error" });
   }
 }

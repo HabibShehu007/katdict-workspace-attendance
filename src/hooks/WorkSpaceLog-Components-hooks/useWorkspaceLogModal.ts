@@ -17,9 +17,16 @@ export function useWorkspaceLogModal({
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [selectedStacks, setSelectedStacks] = useState<string[]>([]);
+
+  // Existing URLs
   const [uiUrl, setUiUrl] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
   const [liveUrl, setLiveUrl] = useState("");
+
+  // New Networking URLs
+  const [infrastructureUrl, setInfrastructureUrl] = useState("");
+  const [automationUrl, setAutomationUrl] = useState("");
+
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
   // THE PREFILL ENGINE
@@ -36,6 +43,9 @@ export function useWorkspaceLogModal({
         setUiUrl(initialData.uiUrl || "");
         setGithubUrl(initialData.githubUrl || "");
         setLiveUrl(initialData.liveUrl || "");
+        // Handle new networking fields
+        setInfrastructureUrl(initialData.infrastructureUrl || "");
+        setAutomationUrl(initialData.automationUrl || "");
       } else {
         setTitle("");
         setDesc("");
@@ -43,6 +53,8 @@ export function useWorkspaceLogModal({
         setUiUrl("");
         setGithubUrl("");
         setLiveUrl("");
+        setInfrastructureUrl("");
+        setAutomationUrl("");
       }
     }
   }, [isOpen, initialData]);
@@ -56,7 +68,6 @@ export function useWorkspaceLogModal({
     return () => clearInterval(interval);
   }, [isOpen, userRole]);
 
-  // Unified stack handler: adds to the stack list
   const handleAddCustomStack = useCallback((newStack: string) => {
     setSelectedStacks((prev) =>
       prev.includes(newStack) ? prev : [...prev, newStack],
@@ -75,9 +86,21 @@ export function useWorkspaceLogModal({
         uiUrl: uiUrl.trim() || undefined,
         githubUrl: githubUrl.trim() || undefined,
         liveUrl: liveUrl.trim() || undefined,
+        infrastructureUrl: infrastructureUrl.trim() || undefined,
+        automationUrl: automationUrl.trim() || undefined,
       });
     },
-    [title, desc, selectedStacks, uiUrl, githubUrl, liveUrl, onSubmit],
+    [
+      title,
+      desc,
+      selectedStacks,
+      uiUrl,
+      githubUrl,
+      liveUrl,
+      infrastructureUrl,
+      automationUrl,
+      onSubmit,
+    ],
   );
 
   return {
@@ -91,6 +114,14 @@ export function useWorkspaceLogModal({
     setGithubUrl,
     liveUrl,
     setLiveUrl,
+    uiUrl,
+    setUiUrl,
+    // Added for Networking Forms
+    infrastructureUrl,
+    setInfrastructureUrl,
+    automationUrl,
+    setAutomationUrl,
+    // Aliases
     figmaUrl: uiUrl,
     setFigmaUrl: setUiUrl,
     assetsUrl: liveUrl,

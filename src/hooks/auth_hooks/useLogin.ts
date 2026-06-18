@@ -70,51 +70,54 @@ export function useLogin({ onSuccess }: UseLoginArgs) {
     }
 
     setIsLoading(true);
-    const toastId = toast.loading("Verifying security parameters...");
+    const toastId = toast.loading("Authenticating...");
 
     try {
-      toast.loading("Calculating physical workspace proximity...", {
-        id: toastId,
+      // 1. Attempt Admin Login first (No location required)
+      const adminResponse = await fetch("/api/auth/admin-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
+
+      if (adminResponse.ok) {
+        const adminData = await adminResponse.json();
+        loginSession(adminData.user, true); // Force bypass location check
+        toast.success("Admin access granted.");
+        onSuccess(adminData.user);
+        return;
+      }
+
+      // 2. If Admin login fails, proceed with User Login + Location Check
+      toast.loading("Calculating workspace proximity...", { id: toastId });
       const locationData = await captureLocation();
 
-      const latitude = locationData.coords.latitude;
-      const longitude = locationData.coords.longitude;
-
-      toast.loading("Authenticating credentials...", { id: toastId });
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, latitude, longitude }),
+        body: JSON.stringify({
+          email,
+          password,
+          latitude: locationData.coords.latitude,
+          longitude: locationData.coords.longitude,
+        }),
       });
 
-      const data = await response.json();
+      const userData = await response.json();
+      if (!response.ok) throw new Error(userData.error || "Login failed.");
 
-      if (!response.ok) {
-        throw new Error(data.error || "Authentication failed.");
-      }
+      loginSession(userData.user, userData.isWithinWorkspace);
+      toast.success(userData.message || "Welcome back!");
 
-      // WRITE TO GLOBAL STATE ENGINE INSTANTLY
-      loginSession(data.user, data.isWithinWorkspace);
-
-      toast.success(data.message || "Welcome back to your workspace!", {
-        id: toastId,
-      });
-
+      onSuccess(userData.user);
       setEmail("");
       setPassword("");
-
-      // PASS THE USER DATA TO THE SUCCESS CALLBACK
-      onSuccess(data.user);
     } catch (err: any) {
-      toast.error(err.message || "Login failed. Check your connection.", {
-        id: toastId,
-      });
+      toast.error(err.message || "Invalid credentials.", { id: toastId });
     } finally {
       setIsLoading(false);
     }
   };
-
   return {
     email,
     setEmail,

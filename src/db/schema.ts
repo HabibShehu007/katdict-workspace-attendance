@@ -26,6 +26,15 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at"),
 });
 
+// 3. Admins Table (Isolated Admin Identity)
+export const admins = pgTable("admins", {
+  id: serial("id").primaryKey(),
+  email: varchar("email").notNull().unique(),
+  password: text("password").notNull(),
+  managedRole: varchar("managed_role").notNull(), // 'web_development', 'ui_ux_design', or 'networking'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // 2. Attendance/Logs Table (The Core Gateway)
 export const attendanceLogs = pgTable(
   "daily_attendance_logs",
@@ -46,6 +55,7 @@ export const attendanceLogs = pgTable(
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
   },
+
   (table) => ({
     // This constraint tells Postgres that a user cannot have two logs for the same date
     userDateUnique: unique("user_date_unique").on(table.userId, table.logDate),

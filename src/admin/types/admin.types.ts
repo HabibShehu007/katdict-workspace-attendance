@@ -30,4 +30,15 @@ interface DesignAdminLog extends AdminBaseLog {
   asset_drive_url?: string;
 }
 
-export type AdminLogItem = WebDevAdminLog | DesignAdminLog;
+interface NetworkingAdminLog extends AdminBaseLog {
+  user_role: "networking";
+  protocols?: string[];
+  hardware?: string[];
+  automation?: string[];
+  infrastructure_url?: string;
+  automation_url?: string;
+  doc_url?: string;
+}
+
+export type AdminLogItem = WebDevAdminLog | DesignAdminLog | NetworkingAdminLog;
+

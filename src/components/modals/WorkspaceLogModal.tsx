@@ -3,7 +3,8 @@ import { X } from "lucide-react";
 import { useWorkspaceLogModal } from "../../hooks/WorkSpaceLog-Components-hooks/useWorkspaceLogModal";
 import type { WorkspaceHistoryItem, UserRole } from "../../types/auth.types";
 import DevLogForm from "../forms/DevLogForm";
-import DesignLogForm from "../forms/DesignLogForm"; // We will create this next
+import DesignLogForm from "../forms/DesignLogForm";
+import NetworkingLogForm from "../forms/NetworkLogForm"; // Ensure this is imported
 
 interface Props {
   isOpen: boolean;
@@ -19,9 +20,19 @@ interface Props {
 
 export default function WorkspaceLogModal(props: Props) {
   const { isOpen, onClose, isSubmitting, userRole } = props;
-
-  // modalLogic now contains state and handlers
   const modalLogic = useWorkspaceLogModal(props);
+
+  // Helper to determine title
+  const getTitle = () => {
+    switch (userRole) {
+      case "ui_ux_design":
+        return "Design Log Details";
+      case "networking":
+        return "Network Log Details";
+      default:
+        return "Daily Work Details";
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -50,21 +61,26 @@ export default function WorkspaceLogModal(props: Props) {
 
             <div className="mb-5 text-left">
               <h3 className="text-xl font-black text-zinc-900 dark:text-white">
-                {userRole === "ui_ux_design"
-                  ? "Design Log Details"
-                  : "Daily Work Details"}
+                {getTitle()}
               </h3>
             </div>
 
             {/* Modal Factory Switch */}
             <div className="flex-1 overflow-y-auto no-scrollbar">
-              {userRole === "web_development" ? (
+              {userRole === "web_development" && (
                 <DevLogForm
                   {...modalLogic}
                   isSubmitting={isSubmitting || false}
                 />
-              ) : (
+              )}
+              {userRole === "ui_ux_design" && (
                 <DesignLogForm
+                  {...modalLogic}
+                  isSubmitting={isSubmitting || false}
+                />
+              )}
+              {userRole === "networking" && (
+                <NetworkingLogForm
                   {...modalLogic}
                   isSubmitting={isSubmitting || false}
                 />

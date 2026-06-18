@@ -41,12 +41,13 @@ export default function WorkspaceLogs({
   const [showLogFormModal, setShowLogFormModal] = useState(false);
 
   // Define a map or a simple check to normalize the role
+  // Use the declared variable instead of hardcoding a string
   const getModalRole = (
     role: string | undefined,
   ): "web_development" | "ui_ux_design" | "networking" => {
-    if (role === "ui_ux_design") return "ui_ux_design";
-    if (role === "networking") return "networking";
-    // Default all others (including "admin") to web_development
+    const activeRole = role || currentUserRole; // Uses the variable now
+    if (activeRole === "ui_ux_design") return "ui_ux_design";
+    if (activeRole === "networking") return "networking";
     return "web_development";
   };
 
@@ -56,8 +57,6 @@ export default function WorkspaceLogs({
 
   const typedLogData = logData as WorkspaceHistoryItem | null;
 
-  // Determine role for modal pass-through
-  // If user.role exists, use it; otherwise default to "web_development"
   const currentUserRole = user?.role || "web_development";
 
   const handleSelectAttendanceOnly = async () => {

@@ -4,7 +4,6 @@ import { users } from "../../src/db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
-// Workspace location config
 const WORKSPACE_LAT = Number(process.env.VITE_KATDICT_LAT || 12.9876);
 const WORKSPACE_LNG = Number(process.env.VITE_KATDICT_LNG || 7.6123);
 const ALLOWED_RADIUS_METERS = Number(
@@ -30,24 +29,18 @@ function calculateDistanceInMeters(
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== "POST") {
+  if (req.method !== "POST")
     return res.status(405).json({ error: "Method not allowed." });
-  }
 
   try {
     const { email, password, latitude, longitude } = req.body;
+    const cleanEmail = email.toLowerCase().trim();
 
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ error: "Email and password are required." });
-    }
-
-    // 1. Fetch user using Drizzle
+    // 1. Fetch user
     const [user] = await db
       .select()
       .from(users)
-      .where(eq(users.email, email.toLowerCase().trim()));
+      .where(eq(users.email, cleanEmail));
 
     // 2. Validate Password
     const isPasswordValid = user
@@ -58,7 +51,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(401).json({ error: "Invalid login credentials." });
     }
 
-    // 3. Location Check Logic
+    // 3. Location Check
     let isWithinWorkspace = false;
     if (latitude !== undefined && longitude !== undefined) {
       const distance = calculateDistanceInMeters(
@@ -68,8 +61,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         WORKSPACE_LNG,
       );
       isWithinWorkspace = distance <= ALLOWED_RADIUS_METERS;
+
+      console.log(`--- User Location Debug ---`);
+      console.log(
+        `Distance: ${distance.toFixed(2)}m (Allowed: ${ALLOWED_RADIUS_METERS}m)`,
+      );
+      console.log(`Result: ${isWithinWorkspace ? "WITHIN" : "REMOTE"}`);
     }
 
+    // 4. Return Success
     return res.status(200).json({
       success: true,
       message: isWithinWorkspace

@@ -1,30 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
-
-interface AdminLog {
-  id: number;
-  project_title: string;
-  arrival_time: string;
-  user_name: string;
-}
-
-interface AdminDashboardData {
-  total_users: number; // Matches the database keys in your merged API
-  present_users: number;
-  active_logs: number;
-  recentLogs: AdminLog[];
-}
+import { useAuth } from "../admin_hooks/useAuth"; // Assuming you have an auth hook
 
 export function useAdminDashboard() {
-  return useQuery<AdminDashboardData>({
-    queryKey: ["adminStats"],
+  const { admin } = useAuth(); // Assume this returns { email, managed_role, ... }
+
+  return useQuery({
+    queryKey: ["adminStats", admin?.managed_role], // Include role in key for automatic re-fetching
     queryFn: async () => {
-      // Pointing to the consolidated API with action=stats
-      const response = await fetch("/api/admin/logs?action=stats");
+      if (!admin?.managed_role) throw new Error("No admin role found");
+
+      const response = await fetch(
+        `/api/admin/logs?action=stats&role=${admin.managed_role}`,
+      );
+
       if (!response.ok) throw new Error("Failed to fetch admin stats");
       return response.json();
     },
+    enabled: !!admin?.managed_role, // Only run if we actually have a role
     refetchInterval: 5000,
     refetchOnWindowFocus: true,
-    staleTime: 5000,
   });
 }

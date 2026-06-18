@@ -1,6 +1,10 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { useAuth } from "../../context/AuthContext";
+import {
+  NETWORKING_STACKS,
+  DESIGN_STACKS,
+} from "../../constants/techStacks";
 
 export interface SubmittedLog {
   title: string;
@@ -10,6 +14,10 @@ export interface SubmittedLog {
   githubUrl?: string; // Dev specific
   liveUrl?: string; // Can represent Assets/Drive link for Designers
   assetsUrl?: string; // Explicitly keeping for DB compatibility
+  // New Networking URLs
+  infrastructureUrl?: string;
+  automationUrl?: string;
+  docUrl?: string;
 }
 
 export function useWorkspaceLog(dayName: string) {
@@ -81,7 +89,6 @@ export function useWorkspaceLog(dayName: string) {
       setLoadingLabel("Writing logs to workspace...");
       setIsSubmitting(true);
 
-      // Group the work-related fields into a workData object
       const payload = {
         userId: user.id,
         day: dayName,
@@ -93,6 +100,9 @@ export function useWorkspaceLog(dayName: string) {
           githubUrl: data.githubUrl,
           liveUrl: data.liveUrl,
           assetsUrl: data.assetsUrl,
+          infrastructureUrl: data.infrastructureUrl,
+          automationUrl: data.automationUrl,
+          docUrl: data.docUrl,
         },
       };
 
@@ -126,34 +136,76 @@ export function useWorkspaceLog(dayName: string) {
     isLogComplete: attendance.isLogComplete,
     isAttendanceLoading,
     logData: attendance.data
-      ? {
-          // Normalize data structure
-          title:
-            attendance.data.projectTitle ||
-            attendance.data.workData?.title ||
-            "",
-          desc:
-            attendance.data.projectDescription ||
-            attendance.data.workData?.desc ||
-            "",
-          stacks: attendance.data.workData?.stacks || [],
-          uiUrl:
-            attendance.data.workData?.uiUrl ||
-            attendance.data.workData?.figmaUrl ||
-            "",
-          githubUrl: attendance.data.workData?.githubUrl || "",
-          liveUrl:
-            attendance.data.workData?.liveUrl ||
-            attendance.data.workData?.assetsUrl ||
-            "",
-          assetsUrl: attendance.data.workData?.assetsUrl || "",
-          dayName: attendance.data.dayName,
-          createdAt: attendance.data.createdAt,
+      ? (() => {
+          const rawData = attendance.data as any;
+          const workData = rawData.workData || {};
+          const role = rawData.role || user?.role || "web_development";
+          const isNetworking = role === "networking";
+          const isDesigner = role === "ui_ux_design";
 
-          // Use 'as any' to bypass the missing type check for 'role'
-          role:
-            (attendance.data as any).role || user?.role || "web_development",
-        }
+          const stacks = rawData.stacks || workData.stacks || [];
+
+          // Categorization for Networking
+          let protocols = rawData.protocols || workData.protocols || [];
+          let hardware = rawData.hardware || workData.hardware || [];
+          let automation = rawData.automation || workData.automation || [];
+
+          if (
+            isNetworking &&
+            protocols.length === 0 &&
+            hardware.length === 0 &&
+            automation.length === 0
+          ) {
+            protocols = stacks.filter(
+              (s: string) =>
+                NETWORKING_STACKS.protocols.includes(s) ||
+                (!NETWORKING_STACKS.hardware.includes(s) &&
+                  !NETWORKING_STACKS.automation.includes(s)),
+            );
+            hardware = stacks.filter((s: string) =>
+              NETWORKING_STACKS.hardware.includes(s),
+            );
+            automation = stacks.filter((s: string) =>
+              NETWORKING_STACKS.automation.includes(s),
+            );
+          }
+
+          // Categorization for Designers
+          let tools = rawData.tools || workData.tools || [];
+          if (isDesigner && tools.length === 0) {
+            tools = stacks;
+          }
+
+          return {
+            ...rawData,
+            title:
+              rawData.projectTitle ||
+              rawData.title ||
+              workData.title ||
+              "Untitled Project",
+            desc:
+              rawData.projectDescription ||
+              rawData.desc ||
+              workData.desc ||
+              "",
+            stacks,
+            protocols,
+            hardware,
+            automation,
+            tools,
+            uiUrl: workData.uiUrl || rawData.uiUrl || "",
+            githubUrl: workData.githubUrl || rawData.githubUrl || "",
+            liveUrl: workData.liveUrl || rawData.liveUrl || "",
+            docUrl: workData.docUrl || rawData.docUrl || "",
+            infrastructureUrl:
+              workData.infrastructureUrl || rawData.infrastructureUrl || "",
+            automationUrl:
+              workData.automationUrl || rawData.automationUrl || "",
+            dayName: rawData.dayName,
+            createdAt: rawData.createdAt,
+            role,
+          };
+        })()
       : null,
     isSubmitting,
     loadingLabel,
@@ -162,3 +214,4 @@ export function useWorkspaceLog(dayName: string) {
     submitWorkLog,
   };
 }
+

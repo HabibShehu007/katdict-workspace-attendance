@@ -1,16 +1,46 @@
 import { Network, Server, Terminal, Link2, ExternalLink } from "lucide-react";
+import { NETWORKING_STACKS } from "../../../constants/techStacks";
 
 interface NetworkingDetailViewProps {
   data: any;
 }
 
 export const NetworkingDetailView = ({ data }: NetworkingDetailViewProps) => {
-  // Extract stacks based on the keys we defined in NETWORKING_STACKS
-  const protocols = data.workData?.protocols || [];
-  const hardware = data.workData?.hardware || [];
-  const automation = data.workData?.automation || [];
+  const workData = data.workData || {};
 
-  // Combine all for display if needed, or iterate by category
+  // Extract stacks
+  const stacks = workData.stacks || [];
+
+  // Use categorized lists if they exist, otherwise filter from stacks
+  let protocols = workData.protocols || [];
+  let hardware = workData.hardware || [];
+  let automation = workData.automation || [];
+
+  if (
+    protocols.length === 0 &&
+    hardware.length === 0 &&
+    automation.length === 0 &&
+    stacks.length > 0
+  ) {
+    protocols = stacks.filter(
+      (s: string) =>
+        NETWORKING_STACKS.protocols.includes(s) ||
+        (!NETWORKING_STACKS.hardware.includes(s) &&
+          !NETWORKING_STACKS.automation.includes(s)),
+    );
+    hardware = stacks.filter((s: string) =>
+      NETWORKING_STACKS.hardware.includes(s),
+    );
+    automation = stacks.filter((s: string) =>
+      NETWORKING_STACKS.automation.includes(s),
+    );
+  }
+
+  // URLs
+  const docUrl = workData.docUrl || workData.doc_url;
+  const infrastructureUrl = workData.infrastructureUrl || workData.infrastructure_url || workData.dashboardUrl;
+  const automationUrl = workData.automationUrl || workData.automation_url;
+
   const hasContent =
     protocols.length > 0 || hardware.length > 0 || automation.length > 0;
 
@@ -77,9 +107,9 @@ export const NetworkingDetailView = ({ data }: NetworkingDetailViewProps) => {
 
       {/* Network Project Links */}
       <div className="flex flex-col gap-2">
-        {data.workData?.docUrl && (
+        {docUrl && (
           <a
-            href={data.workData.docUrl}
+            href={docUrl}
             target="_blank"
             rel="noreferrer"
             className="flex items-center gap-2 text-xs font-black text-sky-600 hover:underline"
@@ -89,9 +119,9 @@ export const NetworkingDetailView = ({ data }: NetworkingDetailViewProps) => {
           </a>
         )}
 
-        {data.workData?.dashboardUrl && (
+        {infrastructureUrl && (
           <a
-            href={data.workData.dashboardUrl}
+            href={infrastructureUrl}
             target="_blank"
             rel="noreferrer"
             className="flex items-center gap-2 text-xs font-black text-zinc-900 dark:text-zinc-100 hover:underline"
@@ -100,7 +130,20 @@ export const NetworkingDetailView = ({ data }: NetworkingDetailViewProps) => {
             <ExternalLink className="w-3 h-3 opacity-60" />
           </a>
         )}
+        
+        {automationUrl && (
+          <a
+            href={automationUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-2 text-xs font-black text-emerald-600 hover:underline"
+          >
+            <Terminal className="w-3.5 h-3.5" /> Automation Scripts
+            <ExternalLink className="w-3 h-3 opacity-60" />
+          </a>
+        )}
       </div>
     </div>
   );
 };
+

@@ -1,12 +1,13 @@
 import { ArrowRight, Clock, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 
+// 1. Updated interface to match Drizzle's camelCase response
 interface RecentLog {
   id: number;
-  project_title: string;
-  arrival_time: string;
-  user_name: string;
-  user_role: string; // Added role field
+  projectTitle: string;
+  arrivalTime: string;
+  userName: string;
+  userRole: string;
 }
 
 interface RecentLogsProps {
@@ -16,10 +17,12 @@ interface RecentLogsProps {
 const ROLE_MAP: Record<string, string> = {
   web_development: "Web Developer",
   ui_ux_design: "UI/UX Designer",
+  networking: "Networking",
 };
 
 export default function RecentLogs({ logs }: RecentLogsProps) {
   const formatTime = (isoString: string) => {
+    if (!isoString) return "--:--";
     return new Date(isoString).toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
@@ -47,21 +50,22 @@ export default function RecentLogs({ logs }: RecentLogsProps) {
             className="group flex items-center justify-between p-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-2xl transition-all duration-200"
           >
             <div className="flex items-center gap-4">
+              {/* 2. Defensive check for avatar initials */}
               <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center font-bold text-xs text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/50">
-                {log.user_name.charAt(0).toUpperCase()}
+                {log.userName?.charAt(0).toUpperCase() || "?"}
               </div>
 
               <div>
                 <p className="text-sm font-semibold text-zinc-900 dark:text-white">
-                  {log.project_title}
+                  {log.projectTitle || "No project specified"}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {log.user_name}
+                    {log.userName || "Unknown User"}
                   </p>
                   <span className="flex items-center gap-0.5 text-[9px] font-bold text-zinc-400 dark:text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded uppercase tracking-wider">
                     <Shield className="w-2 h-2" />
-                    {ROLE_MAP[log.user_role] || "User"}
+                    {ROLE_MAP[log.userRole] || "User"}
                   </span>
                 </div>
               </div>
@@ -69,7 +73,7 @@ export default function RecentLogs({ logs }: RecentLogsProps) {
 
             <div className="flex items-center gap-1 text-[10px] font-mono text-zinc-400 dark:text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-full">
               <Clock className="w-3 h-3" />
-              {formatTime(log.arrival_time)}
+              {formatTime(log.arrivalTime)}
             </div>
           </div>
         ))}

@@ -14,10 +14,8 @@ import {
   Terminal,
 } from "lucide-react";
 
-import type { WorkspaceHistoryItem } from "../../types/auth.types";
-
 interface WorkspaceActiveLogCardProps {
-  logData: WorkspaceHistoryItem;
+  logData: any;
   onModifyClick: () => void;
 }
 
@@ -25,43 +23,42 @@ export default function WorkspaceActiveLogCard({
   logData,
   onModifyClick,
 }: WorkspaceActiveLogCardProps) {
-  const d = logData as any;
+  // --- DEBUGGING LOGS ---
+  console.group("WorkspaceActiveLogCard Debug");
+  console.log("Full logData object:", logData);
+  console.log("workData JSONB contents:", (logData as any).workData);
+  console.groupEnd();
+  const {
+    title,
+    desc,
+    stacks,
+    protocols,
+    hardware,
+    automation,
+    tools,
+    githubUrl,
+    uiUrl,
+    liveUrl,
+    docUrl,
+    infrastructureUrl,
+    automationUrl,
+    dayName,
+    createdAt,
+    role,
+  } = logData;
 
-  const workData = d.workData || {};
-  const role = d.role || "web_development";
-
+  const isLate = logData.isLate === true;
   const isDesigner = role === "ui_ux_design";
   const isNetworking = role === "networking";
 
-  const title =
-    d.projectTitle || workData.title || d.title || "Untitled Project";
-  const desc = d.projectDescription || workData.desc || d.desc || "";
+  const arrivalTime = createdAt
+    ? new Date(createdAt).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "--:--";
 
-  // Extract stacks: handle specific categories for networking
-  const techStacks = workData.stacks || d.stacks || [];
-  const protocols = workData.protocols || [];
-  const hardware = workData.hardware || [];
-  const automation = workData.automation || [];
-
-  const githubUrl = workData.githubUrl || d.githubUrl || d.github_url;
-  const liveUrl = workData.liveUrl || d.liveUrl || d.live_url;
-  const uiUrl = workData.uiUrl || d.uiUrl || d.ui_url;
-  const docUrl = workData.docUrl || d.docUrl;
-  const dashboardUrl = workData.dashboardUrl || d.dashboardUrl;
-
-  const dayName = d.dayName || d.day_name || "Daily Log";
-  const isLate = d.isLate === true;
-
-  const formatTime = (timeInput: string | undefined) => {
-    if (!timeInput) return "--:--";
-    const date = new Date(timeInput);
-    return !isNaN(date.getTime())
-      ? date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-      : timeInput;
-  };
-
-  const arrivalTime = formatTime(d.arrivalTime || d.createdAt);
-  const roleDisplay = (d.role || "web_development").replace("_", " ");
+  const roleDisplay = role.replace("_", " ");
 
   return (
     <motion.div
@@ -101,26 +98,27 @@ export default function WorkspaceActiveLogCard({
             </p>
           </div>
 
-          {/* Networking Stack Display */}
-          {isNetworking ? (
-            <div className="space-y-4">
-              <StackList title="Protocols" icon={Network} items={protocols} />
-              <StackList title="Hardware" icon={Server} items={hardware} />
-              <StackList
-                title="Automation"
-                icon={Terminal}
-                items={automation}
-              />
-            </div>
-          ) : (
-            techStacks.length > 0 && (
+          <div className="space-y-4">
+            {isNetworking ? (
+              <>
+                <StackList title="Protocols" icon={Network} items={protocols} />
+                <StackList title="Hardware" icon={Server} items={hardware} />
+                <StackList
+                  title="Automation"
+                  icon={Terminal}
+                  items={automation}
+                />
+              </>
+            ) : isDesigner ? (
+              <StackList title="Design Tools" icon={Sparkles} items={tools} />
+            ) : (
               <StackList
                 title="Tools & Technologies"
                 icon={Code2}
-                items={techStacks}
+                items={stacks}
               />
-            )
-          )}
+            )}
+          </div>
         </div>
 
         <div className="lg:col-span-5 flex flex-col justify-between gap-6 lg:border-l lg:border-zinc-100 dark:lg:border-zinc-800/80 lg:pl-8">
@@ -131,7 +129,7 @@ export default function WorkspaceActiveLogCard({
             <div className="grid grid-cols-2 lg:grid-cols-1 gap-3">
               <div className="flex items-center justify-between p-3.5 bg-zinc-50 dark:bg-zinc-800/30 border border-zinc-200/60 rounded-xl">
                 <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
-                  <Clock className="w-4 h-4 text-amber-500" />{" "}
+                  <Clock className="w-4 h-4 text-amber-500" />
                   <span className="text-xs font-bold">Arrival</span>
                 </div>
                 <span className="text-[10px] font-black">{arrivalTime}</span>
@@ -142,7 +140,7 @@ export default function WorkspaceActiveLogCard({
                 <div className="flex items-center gap-2">
                   <AlertCircle
                     className={`w-4 h-4 ${isLate ? "text-red-500" : "text-emerald-500"}`}
-                  />{" "}
+                  />
                   <span className="text-xs font-bold text-zinc-600">
                     Status
                   </span>
@@ -170,11 +168,18 @@ export default function WorkspaceActiveLogCard({
                       url={docUrl}
                     />
                   )}
-                  {dashboardUrl && (
+                  {infrastructureUrl && (
                     <LinkItem
-                      icon={ExternalLink}
-                      label="Infrastructure Dashboard"
-                      url={dashboardUrl}
+                      icon={Server}
+                      label="Infrastructure Map"
+                      url={infrastructureUrl}
+                    />
+                  )}
+                  {automationUrl && (
+                    <LinkItem
+                      icon={Terminal}
+                      label="Automation Scripts"
+                      url={automationUrl}
                     />
                   )}
                 </>
@@ -232,7 +237,7 @@ const StackList = ({
   icon: any;
   items: string[];
 }) =>
-  items.length > 0 && (
+  items?.length > 0 ? (
     <div className="space-y-2">
       <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1.5">
         <Icon className="w-3.5 h-3.5" /> {title}
@@ -248,7 +253,7 @@ const StackList = ({
         ))}
       </div>
     </div>
-  );
+  ) : null;
 
 const LinkItem = ({
   icon: Icon,
