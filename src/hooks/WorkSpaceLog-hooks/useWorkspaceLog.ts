@@ -1,10 +1,7 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { useAuth } from "../../context/AuthContext";
-import {
-  NETWORKING_STACKS,
-  DESIGN_STACKS,
-} from "../../constants/techStacks";
+import { NETWORKING_STACKS } from "../../constants/techStacks";
 
 export interface SubmittedLog {
   title: string;
@@ -184,10 +181,7 @@ export function useWorkspaceLog(dayName: string) {
               workData.title ||
               "Untitled Project",
             desc:
-              rawData.projectDescription ||
-              rawData.desc ||
-              workData.desc ||
-              "",
+              rawData.projectDescription || rawData.desc || workData.desc || "",
             stacks,
             protocols,
             hardware,
@@ -214,4 +208,3 @@ export function useWorkspaceLog(dayName: string) {
     submitWorkLog,
   };
 }
-
