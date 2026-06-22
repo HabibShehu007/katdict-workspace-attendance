@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { db } from "../../src/db/";
-import { attendanceLogs } from "../../src/db/schema";
+import { db } from "../../src/db/index.js";
+import { attendanceLogs } from "../../src/db/schema.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST")

@@ -1,12 +1,12 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { db } from "../../src/db/index";
-import { users, attendanceLogs } from "../../src/db/schema"; // Use 'attendanceLogs' as named in schema
+import { db } from "../../src/db/index.js";
+import { users, attendanceLogs } from "../../src/db/schema.js"; // Use 'attendanceLogs' as named in schema
 import { eq, inArray, and, sql } from "drizzle-orm";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { action, role, adminRole } = req.query;
   const passedRole = role || adminRole;
-  
+
   // If the admin passes their role, restrict queries to only that role.
   const targetRoles = passedRole
     ? [passedRole as string]
@@ -49,7 +49,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .where(inArray(users.role, targetRoles));
 
       const presentUsers = await db
-        .select({ count: sql<number>`count(distinct ${attendanceLogs.userId})::int` })
+        .select({
+          count: sql<number>`count(distinct ${attendanceLogs.userId})::int`,
+        })
         .from(attendanceLogs)
         .leftJoin(users, eq(attendanceLogs.userId, users.id))
         .where(
@@ -60,7 +62,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         );
 
       const activeLogs = await db
-        .select({ count: sql<number>`count(distinct ${attendanceLogs.userId})::int` })
+        .select({
+          count: sql<number>`count(distinct ${attendanceLogs.userId})::int`,
+        })
         .from(attendanceLogs)
         .leftJoin(users, eq(attendanceLogs.userId, users.id))
         .where(

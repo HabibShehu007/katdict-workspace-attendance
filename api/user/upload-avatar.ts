@@ -1,7 +1,7 @@
 import { put } from "@vercel/blob";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { db } from "../../src/db/";
-import { users } from "../../src/db/schema";
+import { db } from "../../src/db/index.js";
+import { users } from "../../src/db/schema.js";
 import { eq } from "drizzle-orm";
 
 // Helper function to read the stream into a buffer
