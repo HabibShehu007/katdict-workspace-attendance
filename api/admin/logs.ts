@@ -4,8 +4,13 @@ import { users, attendanceLogs } from "../../src/db/schema"; // Use 'attendanceL
 import { eq, inArray, and, sql } from "drizzle-orm";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const { action } = req.query;
-  const targetRoles = ["web_development", "ui_ux_design", "networking"];
+  const { action, role, adminRole } = req.query;
+  const passedRole = role || adminRole;
+  
+  // If the admin passes their role, restrict queries to only that role.
+  const targetRoles = passedRole
+    ? [passedRole as string]
+    : ["web_development", "ui_ux_design", "networking", "data_science"];
 
   try {
     // 1. GET ALL LOGS
@@ -14,8 +19,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .select({
           id: attendanceLogs.id,
           projectTitle: attendanceLogs.projectTitle, // Use camelCase from schema
+          projectDescription: attendanceLogs.projectDescription, // Added
+          workData: attendanceLogs.workData, // Added
           arrivalTime: attendanceLogs.arrivalTime,
           logDate: attendanceLogs.logDate,
+          isLate: attendanceLogs.isLate, // Add this
+          isOnSite: attendanceLogs.isOnSite, // Add this
+          isLogEmpty: attendanceLogs.isLogEmpty, // Add this
           userName: users.fullName,
           userEmail: users.email,
           userRole: users.role,
@@ -31,10 +41,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // 2. GET DASHBOARD STATS
     if (action === "stats") {
+      const today = new Date().toISOString().split("T")[0];
+
       const totalUsers = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(users)
         .where(inArray(users.role, targetRoles));
+
+      const presentUsers = await db
+        .select({ count: sql<number>`count(distinct ${attendanceLogs.userId})::int` })
+        .from(attendanceLogs)
+        .leftJoin(users, eq(attendanceLogs.userId, users.id))
+        .where(
+          and(
+            eq(attendanceLogs.logDate, today),
+            inArray(users.role, targetRoles),
+          ),
+        );
+
+      const activeLogs = await db
+        .select({ count: sql<number>`count(distinct ${attendanceLogs.userId})::int` })
+        .from(attendanceLogs)
+        .leftJoin(users, eq(attendanceLogs.userId, users.id))
+        .where(
+          and(
+            eq(attendanceLogs.logDate, today),
+            eq(attendanceLogs.isLogEmpty, false),
+            inArray(users.role, targetRoles),
+          ),
+        );
 
       const recentLogs = await db
         .select({
@@ -48,7 +83,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .leftJoin(users, eq(attendanceLogs.userId, users.id)) // Fixed column names
         .where(
           and(
-            eq(attendanceLogs.logDate, sql`CURRENT_DATE`), // Fixed column names
+            eq(attendanceLogs.logDate, today),
             inArray(users.role, targetRoles),
           ),
         )
@@ -57,6 +92,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       return res.status(200).json({
         total_users: totalUsers[0].count,
+        present_users: presentUsers[0].count,
+        active_logs: activeLogs[0].count,
         recentLogs,
       });
     }

@@ -3,7 +3,7 @@ import { PLACEHOLDER_SUGGESTIONS } from "../../constants/techStacks";
 
 interface UseWorkspaceLogModalProps {
   isOpen: boolean;
-  userRole: "web_development" | "ui_ux_design" | "networking";
+  userRole: "web_development" | "ui_ux_design" | "networking" | "data_science";
   onSubmit: (data: any) => void;
   initialData?: any;
 }

@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Inbox, Loader2 } from "lucide-react";
-import { Search } from "lucide-react";
+import { Inbox, Loader2, Search } from "lucide-react";
 import AdminDashboardLayout from "../layouts/AdminDashboardLayout";
 import HistoryHeader from "../components/history_components/AdminHistoryHeader";
 import HistoryCard from "../components/history_components/AdminHistoryCard";
@@ -17,21 +16,31 @@ export default function AdminHistory() {
   );
 
   const { data: logs = [], isLoading } = useAdminHistory();
-
   const [selectedLog, setSelectedLog] = useState<AdminLogItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Helper to convert AdminLogItem to the format components expect
-  const getLegacyCompatibleLog = (log: AdminLogItem) => ({
+  // The Bridge: Maps API response (camelCase) to Component expectations (snake_case)
+  const getLegacyCompatibleLog = (log: any) => ({
     ...log,
-    day_name: new Date(log.log_date).toLocaleDateString("en-US", {
-      weekday: "long",
-    }),
-    formatted_date: new Date(log.log_date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }),
+    user_name: log.userName,
+    user_role: log.userRole,
+    project_title: log.projectTitle,
+    project_description: log.projectDescription,
+    is_late: log.isLate ?? false,
+    is_on_site: log.isOnSite ?? true,
+    is_log_empty: log.isLogEmpty ?? true,
+    day_name: new Date(log.log_date || log.logDate).toLocaleDateString(
+      "en-US",
+      { weekday: "long" },
+    ),
+    formatted_date: new Date(log.log_date || log.logDate).toLocaleDateString(
+      "en-US",
+      {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      },
+    ),
   });
 
   const historyLogs = useMemo(() => {
@@ -49,21 +58,18 @@ export default function AdminHistory() {
 
     const mondayTime = getStartOfWeek();
 
-    return logs.filter((log: AdminLogItem) => {
-      const userName = log.user_name || "";
-      const projectTitle = log.project_title || "";
-      // 1. Search Logic
+    return logs.filter((log: any) => {
+      const mapped = getLegacyCompatibleLog(log);
       const matchesSearch =
-        userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        projectTitle.toLowerCase().includes(searchQuery.toLowerCase());
+        mapped.user_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        mapped.project_title?.toLowerCase().includes(searchQuery.toLowerCase());
 
-      // 2. Date/Filter Logic
-      const logTime = new Date(log.log_date).getTime();
+      const logDate = log.log_date || log.logDate;
+      const logTime = new Date(logDate).getTime();
       let matchesDate = true;
 
       if (filter === "custom" && dateRange.start && dateRange.end) {
-        matchesDate =
-          log.log_date >= dateRange.start && log.log_date <= dateRange.end;
+        matchesDate = logDate >= dateRange.start && logDate <= dateRange.end;
       } else if (filter === "this_week") {
         matchesDate = logTime >= mondayTime;
       } else if (["mon", "tue", "wed", "thu", "fri"].includes(filter)) {
@@ -74,17 +80,16 @@ export default function AdminHistory() {
           thu: 4,
           fri: 5,
         };
-        matchesDate = new Date(log.log_date).getDay() === dayMap[filter];
+        matchesDate = new Date(logDate).getDay() === dayMap[filter];
       }
 
       return matchesSearch && matchesDate;
     });
-  }, [logs, filter, dateRange.start, dateRange.end, searchQuery]);
+  }, [logs, filter, dateRange, searchQuery]);
 
   return (
     <AdminDashboardLayout>
       <div className="w-full max-w-5xl mx-auto p-4 sm:p-6 space-y-6 min-h-screen">
-        {/* Search Bar Input */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
           <input
@@ -95,6 +100,7 @@ export default function AdminHistory() {
             className="w-full pl-10 pr-4 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
           />
         </div>
+
         <HistoryHeader
           activeRange={filter}
           customDateRange={
@@ -127,7 +133,7 @@ export default function AdminHistory() {
           </motion.div>
         ) : (
           <div className="w-full space-y-3">
-            {historyLogs.map((log: AdminLogItem) => (
+            {historyLogs.map((log: any) => (
               <HistoryCard
                 key={log.id}
                 log={getLegacyCompatibleLog(log)}

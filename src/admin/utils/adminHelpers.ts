@@ -7,6 +7,8 @@ export const getAdminTitle = (role: string | undefined) => {
       return "UI/UX Design Admin";
     case "networking":
       return "Networking Admin";
+    case "data_science":
+      return "Data Science Admin";
     default:
       return "System Administrator";
   }

@@ -27,6 +27,8 @@ export default function ProfileDisplay({
         return "WEB DEVELOPMENT";
       case "networking":
         return "NETWORKING";
+      case "data_science":
+        return "DATA SCIENCE";
       default:
         return cleanRole?.replace("_", " ").toUpperCase() || "DEVELOPER";
     }
@@ -39,6 +41,8 @@ export default function ProfileDisplay({
         return "text-purple-600 dark:text-purple-400";
       case "networking":
         return "text-sky-600 dark:text-sky-400";
+      case "data_science":
+        return "text-blue-600 dark:text-blue-400";
       default:
         return "text-emerald-600 dark:text-emerald-400";
     }

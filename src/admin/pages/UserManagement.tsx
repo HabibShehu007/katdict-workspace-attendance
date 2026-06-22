@@ -5,10 +5,11 @@ import ConfirmationModal from "../components/modals/ConfirmationModal";
 import UserDetailsModal from "../components/modals/UserDetailsModal";
 import { useUsers, useDeleteUser } from "../hooks/user_hooks/useUsers";
 
-// Role mapping helper
 const ROLE_MAP: Record<string, string> = {
   web_development: "Web Developer",
   ui_ux_design: "UI/UX Designer",
+  networking: "Networking",
+  data_science: "Data Scientist",
   admin: "Administrator",
 };
 
@@ -24,12 +25,13 @@ export default function UserManagement() {
   const { mutate: deleteUser, isPending: isDeleting } = useDeleteUser();
 
   const filteredUsers = useMemo(() => {
-    if (!users) return [];
+    if (!users || !Array.isArray(users)) return [];
+    const query = searchQuery.toLowerCase();
+
     return users.filter((user: any) => {
-      return (
-        user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      const name = (user.fullName || "").toLowerCase();
+      const email = (user.email || "").toLowerCase();
+      return name.includes(query) || email.includes(query);
     });
   }, [users, searchQuery]);
 
@@ -99,7 +101,7 @@ export default function UserManagement() {
                           <User className="w-5 h-5" />
                         </div>
                         <p className="font-bold text-zinc-900 dark:text-white">
-                          {user.full_name}
+                          {user.fullName}
                         </p>
                       </div>
                     </td>
@@ -127,7 +129,7 @@ export default function UserManagement() {
                           onClick={() =>
                             setUserToDelete({
                               id: user.id,
-                              name: user.full_name,
+                              name: user.fullName,
                             })
                           }
                           className="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-500 hover:text-red-600 transition-all"
@@ -158,14 +160,15 @@ export default function UserManagement() {
           selectedUser
             ? {
                 id: selectedUser.id,
-                fullName: selectedUser.full_name, // Mapping snake_case to camelCase
+                fullName: selectedUser.fullName,
                 email: selectedUser.email,
                 role: selectedUser.role,
-                createdAt: selectedUser.created_at,
-                current_streak: selectedUser.current_streak,
-                highest_streak: selectedUser.highest_streak,
+                currentStreak: selectedUser.currentStreak,
+                highestStreak: selectedUser.highestStreak,
+                createdAt: selectedUser.createdAt, // Passing the raw date/string
                 bio: selectedUser.bio,
-                avatarUrl: selectedUser.avatar_url,
+                avatarUrl: selectedUser.avatarUrl,
+                isAdmin: selectedUser.role === "admin",
               }
             : null
         }

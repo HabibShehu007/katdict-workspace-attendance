@@ -4,6 +4,7 @@ import { useLogRole } from "../../hooks/context_hooks/useLogRole";
 import { DevDetailView } from "./renderers/DevDetailView";
 import { DesignDetailView } from "./renderers/DesignDetailView";
 import { NetworkingDetailView } from "./renderers/NetworkingDetailView"; // Import the new view
+import { DataScienceDetailView } from "./renderers/DataScienceDetailView";
 import type { WorkspaceHistoryItem } from "../../context/AuthContext";
 
 interface HistoryDetailsModalProps {
@@ -29,6 +30,8 @@ export default function HistoryDetailsModal({
         return <DesignDetailView data={log} />;
       case "networking":
         return <NetworkingDetailView data={log} />;
+      case "data_science":
+        return <DataScienceDetailView data={log} />;
       default:
         return null;
     }

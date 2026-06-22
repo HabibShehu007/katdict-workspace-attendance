@@ -36,6 +36,8 @@ export default function EditProfileModal({
         return "UI/UX & GRAPHIC DESIGN";
       case "networking":
         return "NETWORKING";
+      case "data_science":
+        return "DATA SCIENCE";
       case "web_development":
       default:
         return "WEB DEVELOPMENT";

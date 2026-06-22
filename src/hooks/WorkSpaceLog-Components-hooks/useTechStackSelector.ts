@@ -3,6 +3,7 @@ import {
   DEV_STACKS,
   DESIGN_STACKS,
   NETWORKING_STACKS,
+  DATA_SCIENCE_STACKS,
 } from "../../constants/techStacks";
 import type { UserRole } from "../../types/auth.types";
 
@@ -14,7 +15,10 @@ export type TabType =
   | "categories"
   | "protocols"
   | "hardware"
-  | "automation";
+  | "automation"
+  | "libraries"
+  | "tools_ds"
+  | "concepts";
 
 interface UseTechStackSelectorProps {
   userRole: UserRole;
@@ -34,7 +38,9 @@ export function useTechStackSelector({
       ? "tools"
       : userRole === "networking"
         ? "protocols"
-        : "frontend",
+        : userRole === "data_science"
+          ? "libraries"
+          : "frontend",
   );
   const [customInput, setCustomInput] = useState("");
 
@@ -65,7 +71,20 @@ export function useTechStackSelector({
       );
     }
 
-    // 3. Web Development Case
+    // 3. Data Science Case
+    if (userRole === "data_science") {
+      const { libraries, tools, concepts } = DATA_SCIENCE_STACKS;
+      const optionsMap: Record<string, string[]> = {
+        libraries: all(libraries),
+        tools_ds: all(tools),
+        concepts: all(concepts),
+      };
+      return (
+        optionsMap[activeTab] || all([...libraries, ...tools, ...concepts])
+      );
+    }
+
+    // 4. Web Development Case
     const { frontend, backend } = DEV_STACKS;
     const optionsMap: Record<string, string[]> = {
       frontend: all(frontend),

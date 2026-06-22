@@ -6,10 +6,19 @@ export const getWelcomeEmail = (fullName: string, role: string) => {
     growth: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>`,
   };
 
-  const roleText =
-    role === "web_development"
-      ? "As a developer, your journey here is about mastering the craft of building digital solutions."
-      : "As a designer, your focus here is on creating beautiful, intuitive experiences that solve real problems.";
+  let roleText =
+    "As a designer, your focus here is on creating beautiful, intuitive experiences that solve real problems.";
+
+  if (role === "web_development") {
+    roleText =
+      "As a developer, your journey here is about mastering the craft of building digital solutions.";
+  } else if (role === "networking") {
+    roleText =
+      "As a network specialist, your focus here is on configuring, securing, and maintaining robust infrastructures.";
+  } else if (role === "data_science") {
+    roleText =
+      "As a data scientist, your journey here is about uncovering insights, building predictive models, and making data-driven decisions.";
+  }
 
   return `
   <div style="font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; line-height: 1.6; color: #374151; max-width: 600px; margin: 40px auto; padding: 40px; background-color: #ffffff; border-radius: 24px; border: 1px solid #e5e7eb;">

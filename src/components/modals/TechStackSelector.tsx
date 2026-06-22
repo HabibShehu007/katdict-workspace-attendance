@@ -8,6 +8,8 @@ import {
   PenTool,
   LayoutTemplate,
   Network,
+  Database,
+  Brain,
 } from "lucide-react";
 import { useTechStackSelector } from "../../hooks/WorkSpaceLog-Components-hooks/useTechStackSelector";
 import type { TabType } from "../../hooks/WorkSpaceLog-Components-hooks/useTechStackSelector";
@@ -42,6 +44,8 @@ export default function TechStackSelector({
     if (userRole === "ui_ux_design") return ["tools", "categories"];
     if (userRole === "networking")
       return ["protocols", "hardware", "automation"];
+    if (userRole === "data_science")
+      return ["libraries", "tools_ds", "concepts"];
     return ["frontend", "backend", "fullstack"];
   };
 
@@ -71,7 +75,9 @@ export default function TechStackSelector({
             ? "Design Tools & Categories"
             : userRole === "networking"
               ? "Protocols & Infrastructure"
-              : "Technologies Used"}
+              : userRole === "data_science"
+                ? "Libraries & Data Concepts"
+                : "Technologies Used"}
         </label>
 
         <div className="flex p-0.5 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl text-[11px] font-bold self-start sm:self-auto">
@@ -94,7 +100,16 @@ export default function TechStackSelector({
               {tab === "protocols" && <Network className="w-3 h-3" />}
               {tab === "hardware" && <Server className="w-3 h-3" />}
               {tab === "automation" && <Terminal className="w-3 h-3" />}
-              <span>{tab === "fullstack" ? "Full Stack" : tab}</span>
+              {tab === "libraries" && <Database className="w-3 h-3" />}
+              {tab === "tools_ds" && <PenTool className="w-3 h-3" />}
+              {tab === "concepts" && <Brain className="w-3 h-3" />}
+              <span>
+                {tab === "fullstack"
+                  ? "Full Stack"
+                  : tab === "tools_ds"
+                    ? "Tools"
+                    : tab}
+              </span>
             </button>
           ))}
         </div>

@@ -21,6 +21,8 @@ interface AdminHistoryCardProps {
 const ROLE_MAP: Record<string, string> = {
   web_development: "Web Developer",
   ui_ux_design: "UI/UX Designer",
+  networking: "Networking",
+  data_science: "Data Scientist",
   admin: "Administrator",
 };
 

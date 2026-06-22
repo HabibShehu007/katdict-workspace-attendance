@@ -17,6 +17,12 @@ interface NetworkingStack {
   automation: string[];
 }
 
+interface DataScienceStack {
+  libraries: string[];
+  tools: string[];
+  concepts: string[];
+}
+
 export const DEV_STACKS: DevStack = {
   frontend: [
     "HTML5",
@@ -99,6 +105,47 @@ export const NETWORKING_STACKS: NetworkingStack = {
   ],
 } as const;
 
+export const DATA_SCIENCE_STACKS: DataScienceStack = {
+  libraries: [
+    "Python",
+    "R",
+    "Pandas",
+    "NumPy",
+    "Scikit-Learn",
+    "TensorFlow",
+    "PyTorch",
+    "Keras",
+    "Matplotlib",
+    "Seaborn",
+    "NLTK",
+    "OpenCV",
+    "SQL",
+  ],
+  tools: [
+    "Jupyter Notebook",
+    "Google Colab",
+    "Kaggle",
+    "Tableau",
+    "Power BI",
+    "Anaconda",
+    "Hugging Face",
+    "Streamlit",
+    "Gradio",
+    "Git/GitHub",
+  ],
+  concepts: [
+    "Machine Learning",
+    "Deep Learning",
+    "Data Wrangling",
+    "Exploratory Data Analysis (EDA)",
+    "Natural Language Processing (NLP)",
+    "Computer Vision",
+    "Data Visualization",
+    "Statistical Analysis",
+    "Predictive Modeling",
+  ],
+} as const;
+
 export const PLACEHOLDER_SUGGESTIONS: Record<string, string[]> = {
   web_development: [
     "Building user authentication layers...",
@@ -119,5 +166,12 @@ export const PLACEHOLDER_SUGGESTIONS: Record<string, string[]> = {
     "Automating switch port provisioning...",
     "Analyzing network traffic patterns...",
     "Deploying infrastructure as code...",
+  ],
+  data_science: [
+    "Performing Exploratory Data Analysis on datasets...",
+    "Training predictive machine learning models...",
+    "Building interactive visualization dashboards...",
+    "Preprocessing and cleaning unstructured text data...",
+    "Deploying machine learning models using Streamlit...",
   ],
 } as const;

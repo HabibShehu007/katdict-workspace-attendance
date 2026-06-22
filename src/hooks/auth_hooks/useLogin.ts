@@ -70,10 +70,11 @@ export function useLogin({ onSuccess }: UseLoginArgs) {
     }
 
     setIsLoading(true);
+    // Create the initial loading toast
     const toastId = toast.loading("Authenticating...");
 
     try {
-      // 1. Attempt Admin Login first (No location required)
+      // 1. Attempt Admin Login
       const adminResponse = await fetch("/api/auth/admin-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -82,14 +83,16 @@ export function useLogin({ onSuccess }: UseLoginArgs) {
 
       if (adminResponse.ok) {
         const adminData = await adminResponse.json();
-        loginSession(adminData.user, true); // Force bypass location check
+        toast.dismiss(toastId); // Clean up the loading toast
+        loginSession(adminData.user, true);
         toast.success("Admin access granted.");
         onSuccess(adminData.user);
         return;
       }
 
-      // 2. If Admin login fails, proceed with User Login + Location Check
+      // 2. If not admin, update existing toast to show location step
       toast.loading("Calculating workspace proximity...", { id: toastId });
+
       const locationData = await captureLocation();
 
       const response = await fetch("/api/auth/login", {
@@ -104,8 +107,13 @@ export function useLogin({ onSuccess }: UseLoginArgs) {
       });
 
       const userData = await response.json();
-      if (!response.ok) throw new Error(userData.error || "Login failed.");
 
+      if (!response.ok) {
+        throw new Error(userData.error || "Login failed.");
+      }
+
+      // Successful user login
+      toast.dismiss(toastId); // Remove the loading/calculating toast
       loginSession(userData.user, userData.isWithinWorkspace);
       toast.success(userData.message || "Welcome back!");
 
@@ -113,7 +121,9 @@ export function useLogin({ onSuccess }: UseLoginArgs) {
       setEmail("");
       setPassword("");
     } catch (err: any) {
-      toast.error(err.message || "Invalid credentials.", { id: toastId });
+      // Ensure we dismiss the loading toast before showing the error
+      toast.dismiss(toastId);
+      toast.error(err.message || "Invalid credentials.");
     } finally {
       setIsLoading(false);
     }

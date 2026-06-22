@@ -18,6 +18,8 @@ export default function ProfileDetails({
         return "WEB DEVELOPMENT";
       case "networking":
         return "NETWORKING";
+      case "data_science":
+        return "DATA SCIENCE";
       default:
         return role?.replace("_", " ").toUpperCase() || "DEVELOPER";
     }
@@ -30,6 +32,8 @@ export default function ProfileDetails({
         return "border-purple-500 text-purple-600";
       case "networking":
         return "border-sky-500 text-sky-600";
+      case "data_science":
+        return "border-blue-500 text-blue-600";
       default:
         return "border-emerald-500 text-emerald-600";
     }

@@ -40,5 +40,19 @@ interface NetworkingAdminLog extends AdminBaseLog {
   doc_url?: string;
 }
 
-export type AdminLogItem = WebDevAdminLog | DesignAdminLog | NetworkingAdminLog;
+interface DataScienceAdminLog extends AdminBaseLog {
+  user_role: "data_science";
+  libraries?: string[];
+  concepts?: string[];
+  tools_ds?: string[];
+  dataset_url?: string;
+  notebook_url?: string;
+  dashboard_url?: string;
+}
+
+export type AdminLogItem =
+  | WebDevAdminLog
+  | DesignAdminLog
+  | NetworkingAdminLog
+  | DataScienceAdminLog;
 

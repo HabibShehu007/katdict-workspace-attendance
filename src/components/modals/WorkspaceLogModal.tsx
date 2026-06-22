@@ -5,6 +5,7 @@ import type { WorkspaceHistoryItem, UserRole } from "../../types/auth.types";
 import DevLogForm from "../forms/DevLogForm";
 import DesignLogForm from "../forms/DesignLogForm";
 import NetworkingLogForm from "../forms/NetworkLogForm"; // Ensure this is imported
+import DataScienceLogForm from "../forms/DataScienceLogForm";
 
 interface Props {
   isOpen: boolean;
@@ -14,7 +15,7 @@ interface Props {
   initialData: WorkspaceHistoryItem | null;
   userRole: Extract<
     UserRole,
-    "web_development" | "ui_ux_design" | "networking"
+    "web_development" | "ui_ux_design" | "networking" | "data_science"
   >;
 }
 
@@ -29,6 +30,8 @@ export default function WorkspaceLogModal(props: Props) {
         return "Design Log Details";
       case "networking":
         return "Network Log Details";
+      case "data_science":
+        return "Data Science Log Details";
       default:
         return "Daily Work Details";
     }
@@ -81,6 +84,12 @@ export default function WorkspaceLogModal(props: Props) {
               )}
               {userRole === "networking" && (
                 <NetworkingLogForm
+                  {...modalLogic}
+                  isSubmitting={isSubmitting || false}
+                />
+              )}
+              {userRole === "data_science" && (
+                <DataScienceLogForm
                   {...modalLogic}
                   isSubmitting={isSubmitting || false}
                 />

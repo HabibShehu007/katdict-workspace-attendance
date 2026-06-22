@@ -103,7 +103,7 @@ export default function SignUp() {
                 <input
                   required
                   type="text"
-                  placeholder="John Doe"
+                  placeholder="FULL NAME"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   disabled={isLoading}
@@ -151,6 +151,7 @@ export default function SignUp() {
                   <option value="web_development">Web Development</option>
                   <option value="ui_ux_design">UI/UX & Graphic Design</option>
                   <option value="networking">Networking</option>
+                  <option value="data_science">Data Science</option>
                 </select>
               </div>
             </div>

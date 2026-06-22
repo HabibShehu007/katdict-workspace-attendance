@@ -5,7 +5,8 @@ export type UserRole =
   | "admin"
   | "web_development"
   | "ui_ux_design"
-  | "networking";
+  | "networking"
+  | "data_science";
 
 // 2. Base Profile
 export interface UserProfile {
@@ -34,6 +35,13 @@ export interface WorkData {
   protocols?: string[]; // e.g., BGP, OSPF, VLAN, IPv6
   infrastructureUrl?: string; // Link to topology (e.g., Lucidchart/Draw.io)
   automationUrl?: string; // Link to scripts (e.g., Ansible/Python/Git)
+  // Data Science (New)
+  libraries?: string[]; // e.g., Pandas, PyTorch, SQL
+  concepts?: string[]; // e.g., ML, Exploratory Data Analysis (EDA)
+  tools_ds?: string[]; // e.g., Jupyter Notebook, Power BI
+  datasetUrl?: string; // Dataset reference link
+  notebookUrl?: string; // Colab / GitHub notebook link
+  dashboardUrl?: string; // Streamlit / PowerBI / Tableau dashboard link
   // Flexible access for any extra metadata
   [key: string]: any;
 }

@@ -44,10 +44,11 @@ export default function WorkspaceLogs({
   // Use the declared variable instead of hardcoding a string
   const getModalRole = (
     role: string | undefined,
-  ): "web_development" | "ui_ux_design" | "networking" => {
+  ): "web_development" | "ui_ux_design" | "networking" | "data_science" => {
     const activeRole = role || currentUserRole; // Uses the variable now
     if (activeRole === "ui_ux_design") return "ui_ux_design";
     if (activeRole === "networking") return "networking";
+    if (activeRole === "data_science") return "data_science";
     return "web_development";
   };
 
