@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import type {
   UserProfile,
   AttendanceStatus,
@@ -12,6 +12,7 @@ export function useAuthLogic() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isWithinWorkspace, setIsWithinWorkspace] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
   const [attendance, setAttendance] = useState<AttendanceStatus>({
     hasAttendance: false,
     isLogComplete: false,
@@ -22,7 +23,9 @@ export function useAuthLogic() {
   const [historyLogs, setHistoryLogs] = useState<WorkspaceHistoryItem[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState<boolean>(false);
 
-  // Simplified: Only checks if the user object has the admin flag
+  // Ref for the inactivity timer - explicitly typed
+  const inactivityTimer = useRef<NodeJS.Timeout | null>(null);
+
   const isAdmin = useMemo(() => !!user?.isAdmin, [user]);
 
   const normalizeLog = useCallback(
@@ -133,6 +136,42 @@ export function useAuthLogic() {
     [user?.id, historyLogs.length, normalizeLog],
   );
 
+  const logoutSession = useCallback(() => {
+    setUser(null);
+    setIsWithinWorkspace(false);
+    setAttendance({ hasAttendance: false, isLogComplete: false, data: null });
+    setHistoryLogs([]);
+    localStorage.removeItem("katdict_user");
+    localStorage.removeItem("katdict_geo_status");
+
+    // Fix: Check if timer exists before clearing
+    if (inactivityTimer.current) {
+      clearTimeout(inactivityTimer.current);
+      inactivityTimer.current = null;
+    }
+
+    window.location.href = "/admin/login";
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const resetTimer = () => {
+      if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+      inactivityTimer.current = setTimeout(logoutSession, 120000); // 2 minutes
+    };
+
+    const events = ["mousedown", "keydown", "scroll", "touchstart"];
+    events.forEach((e) => window.addEventListener(e, resetTimer));
+
+    resetTimer();
+
+    return () => {
+      events.forEach((e) => window.removeEventListener(e, resetTimer));
+      if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+    };
+  }, [user, logoutSession]);
+
   useEffect(() => {
     const storedUser = localStorage.getItem("katdict_user");
     const storedGeo = localStorage.getItem("katdict_geo_status");
@@ -141,7 +180,6 @@ export function useAuthLogic() {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
         refreshAttendance(parsedUser.id);
-        // Default to guard logic for users
         setIsWithinWorkspace(BYPASS_LOCATION_GUARD || storedGeo === "true");
       } catch (e) {
         console.error("Failed to parse stored user", e);
@@ -151,21 +189,17 @@ export function useAuthLogic() {
   }, [refreshAttendance]);
 
   const loginSession = (userData: UserProfile, isWithin: boolean) => {
-    setUser(userData);
+    const sessionData = {
+      ...userData,
+      isAdmin: !!userData.isAdmin,
+    };
+
+    setUser(sessionData);
     const finalStatus = BYPASS_LOCATION_GUARD || isWithin;
     setIsWithinWorkspace(finalStatus);
-    localStorage.setItem("katdict_user", JSON.stringify(userData));
+    localStorage.setItem("katdict_user", JSON.stringify(sessionData));
     localStorage.setItem("katdict_geo_status", String(finalStatus));
-    refreshAttendance(userData.id);
-  };
-
-  const logoutSession = () => {
-    setUser(null);
-    setIsWithinWorkspace(false);
-    setAttendance({ hasAttendance: false, isLogComplete: false, data: null });
-    setHistoryLogs([]);
-    localStorage.removeItem("katdict_user");
-    localStorage.removeItem("katdict_geo_status");
+    refreshAttendance(sessionData.id);
   };
 
   return {

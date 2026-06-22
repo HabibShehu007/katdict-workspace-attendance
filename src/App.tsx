@@ -29,9 +29,19 @@ const ProtectedRoute = ({
   adminOnly?: boolean;
 }) => {
   const { user, isLoading } = useAuth();
+
   if (isLoading) return <div>Loading...</div>;
-  if (!user) return <Navigate to="/login" replace />;
-  if (adminOnly && !user.isAdmin) return <Navigate to="/dashboard" replace />;
+
+  // If not logged in, redirect to the appropriate login page
+  if (!user) {
+    return <Navigate to={adminOnly ? "/admin/login" : "/login"} replace />;
+  }
+
+  // If admin access is required but user is not admin, redirect to user dashboard
+  if (adminOnly && !user.isAdmin) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return <>{children}</>;
 };
 
