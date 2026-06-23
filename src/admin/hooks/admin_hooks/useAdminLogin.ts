@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useAuth } from "../../../context/AuthContext";
+import { useAdmin } from "../../context/AdminContext"; // Pointing to your new Context
 
 export function useAdminLogin() {
   const [isLoading, setIsLoading] = useState(false);
-  const { loginSession } = useAuth();
+  const { loginAdmin } = useAdmin(); // Accessing the new Admin provider
   const navigate = useNavigate();
 
   const adminLogin = async (email: string, password: string) => {
@@ -24,9 +24,9 @@ export function useAdminLogin() {
         throw new Error(data.message || "Unauthorized access attempt");
       }
 
-      // Security: We ensure the session flag is explicitly true
-      // and update the global auth state
-      loginSession({ ...data.user, isAdmin: true }, true);
+      // Update the global Admin context
+      // data.user here is your AdminProfile type
+      loginAdmin(data.user);
 
       toast.success("Welcome back, Administrator.");
 

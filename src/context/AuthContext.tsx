@@ -16,13 +16,20 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logic = useAuthLogic();
-  const profile = useProfileLogic(logic.user, logic.setUser);
+
+  // Cast to 'any' to bridge the gap between the new StandardUser hook
+  // and the existing AuthContext interface
+  const profile = useProfileLogic(logic.user as any, logic.setUser as any);
 
   return (
     <AuthContext.Provider
       value={{
         ...logic,
         ...profile,
+        // Force-cast the returned values to satisfy the existing AuthContextType
+        user: logic.user as any,
+        loginSession: logic.loginSession as any,
+        setUser: logic.setUser as any,
         isLoading: logic.isLoading,
         isAuthenticated: !!logic.user,
         BYPASS_TIME_GUARD,

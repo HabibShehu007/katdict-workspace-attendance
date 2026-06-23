@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom"; // Added for secure redirection
+import { Navigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import AdminSidebar from "../navigation/AdminSidebar";
 import AdminMobileNav from "../navigation/AdminMobileNav";
 import ThemeToggle from "../../components/app/ThemeToggle";
-import { useAuth } from "../hooks/admin_hooks/useAuth";
+// Updated import to point to the new Admin Context
+import { useAdmin } from "../context/AdminContext";
 import { getAdminTitle } from "../utils/adminHelpers";
 
 interface AdminDashboardLayoutProps {
@@ -15,10 +16,12 @@ export default function AdminDashboardLayout({
   children,
 }: AdminDashboardLayoutProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { admin, loading } = useAuth(); // Destructured loading
+
+  // Now using the unified Admin context hook
+  const { admin, isLoading } = useAdmin();
 
   // 1. Handle Loading State
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-900">
         <div className="animate-pulse text-emerald-600 font-medium">

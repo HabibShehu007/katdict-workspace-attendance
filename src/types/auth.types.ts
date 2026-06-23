@@ -8,58 +8,67 @@ export type UserRole =
   | "networking"
   | "data_science";
 
-// 2. Base Profile
-export interface UserProfile {
-  id: number; // Changed to number to match Drizzle serial ID
+// Base Profile fields shared by all
+interface BaseProfile {
+  id: number;
   fullName: string;
   email: string;
-  currentStreak: number;
-  highestStreak: number;
   createdAt: string;
-  role: UserRole;
   avatarUrl?: string | null;
   bio?: string | null;
-  isAdmin: boolean;
 }
 
+// 2. Profile Structures
+export interface StandardUser extends BaseProfile {
+  isAdmin: false;
+  role: Exclude<UserRole, "admin">;
+  currentStreak: number;
+  highestStreak: number;
+}
+
+export interface AdminUser extends BaseProfile {
+  isAdmin: true;
+  role: "admin";
+  currentStreak?: never; // Admins don't have streaks
+  highestStreak?: never;
+}
+
+// The Discriminator: This is the source of truth for TypeScript
+export type UserProfile = StandardUser | AdminUser;
+
+// 3. Work Data
 export interface WorkData {
-  // Web Dev fields
   stacks?: string[];
   githubUrl?: string;
   liveUrl?: string;
   uiUrl?: string;
-  // UI/UX fields
   tools?: string[];
   assetsUrl?: string;
-  // Networking (New)
-  protocols?: string[]; // e.g., BGP, OSPF, VLAN, IPv6
-  infrastructureUrl?: string; // Link to topology (e.g., Lucidchart/Draw.io)
-  automationUrl?: string; // Link to scripts (e.g., Ansible/Python/Git)
-  // Data Science (New)
-  libraries?: string[]; // e.g., Pandas, PyTorch, SQL
-  concepts?: string[]; // e.g., ML, Exploratory Data Analysis (EDA)
-  tools_ds?: string[]; // e.g., Jupyter Notebook, Power BI
-  datasetUrl?: string; // Dataset reference link
-  notebookUrl?: string; // Colab / GitHub notebook link
-  dashboardUrl?: string; // Streamlit / PowerBI / Tableau dashboard link
-  // Flexible access for any extra metadata
+  protocols?: string[];
+  infrastructureUrl?: string;
+  automationUrl?: string;
+  libraries?: string[];
+  concepts?: string[];
+  tools_ds?: string[];
+  datasetUrl?: string;
+  notebookUrl?: string;
+  dashboardUrl?: string;
   [key: string]: any;
 }
 
 // 4. History Logs
-// We match this to the actual structure returned by the database
 export interface WorkspaceHistoryItem {
   id: number;
   userId: number;
   dayName: string;
-  logDate: string; // The formatted date
+  logDate: string;
   projectTitle: string;
   projectDescription: string;
   isLogEmpty: boolean;
-  workData: WorkData; // Here is our JSONB dynamic field
+  workData: WorkData;
   createdAt: string;
   title?: string;
-  isLate: boolean; // Add this
+  isLate: boolean;
   isOnSite: boolean;
   desc?: string;
   stacks?: string[];
@@ -77,7 +86,7 @@ export interface AttendanceStatus {
   data: WorkspaceHistoryItem | null;
 }
 
-// 5. Auth Context (Your global state controller)
+// 5. Auth Context
 export interface AuthContextType {
   user: UserProfile | null;
   isLoading: boolean;

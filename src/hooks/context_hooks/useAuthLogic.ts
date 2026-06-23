@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type {
-  UserProfile,
+  StandardUser,
   AttendanceStatus,
   WorkspaceHistoryItem,
 } from "../../types/auth.types";
@@ -9,7 +9,7 @@ export const BYPASS_LOCATION_GUARD = true;
 export const BYPASS_TIME_GUARD = true;
 
 export function useAuthLogic() {
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<StandardUser | null>(null);
   const [isWithinWorkspace, setIsWithinWorkspace] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -23,10 +23,7 @@ export function useAuthLogic() {
   const [historyLogs, setHistoryLogs] = useState<WorkspaceHistoryItem[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState<boolean>(false);
 
-  // Ref for the inactivity timer - explicitly typed
   const inactivityTimer = useRef<NodeJS.Timeout | null>(null);
-
-  const isAdmin = useMemo(() => !!user?.isAdmin, [user]);
 
   const normalizeLog = useCallback(
     (raw: any): WorkspaceHistoryItem => {
@@ -144,13 +141,13 @@ export function useAuthLogic() {
     localStorage.removeItem("katdict_user");
     localStorage.removeItem("katdict_geo_status");
 
-    // Fix: Check if timer exists before clearing
     if (inactivityTimer.current) {
       clearTimeout(inactivityTimer.current);
       inactivityTimer.current = null;
     }
 
-    window.location.href = "/admin/login";
+    // Redirected to standard user login
+    window.location.href = "/login";
   }, []);
 
   useEffect(() => {
@@ -158,7 +155,7 @@ export function useAuthLogic() {
 
     const resetTimer = () => {
       if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
-      inactivityTimer.current = setTimeout(logoutSession, 120000); // 2 minutes
+      inactivityTimer.current = setTimeout(logoutSession, 120000);
     };
 
     const events = ["mousedown", "keydown", "scroll", "touchstart"];
@@ -177,7 +174,7 @@ export function useAuthLogic() {
     const storedGeo = localStorage.getItem("katdict_geo_status");
     if (storedUser) {
       try {
-        const parsedUser = JSON.parse(storedUser);
+        const parsedUser: StandardUser = JSON.parse(storedUser);
         setUser(parsedUser);
         refreshAttendance(parsedUser.id);
         setIsWithinWorkspace(BYPASS_LOCATION_GUARD || storedGeo === "true");
@@ -188,23 +185,30 @@ export function useAuthLogic() {
     setIsLoading(false);
   }, [refreshAttendance]);
 
-  const loginSession = (userData: UserProfile, isWithin: boolean) => {
-    const sessionData = {
+  const loginSession = (userData: any, isWithin: boolean) => {
+    if (userData?.isAdmin === true) {
+      return;
+    }
+
+    // Proceed only for StandardUsers
+    const sessionData: StandardUser = {
       ...userData,
-      isAdmin: !!userData.isAdmin,
+      isAdmin: false,
     };
 
     setUser(sessionData);
     const finalStatus = BYPASS_LOCATION_GUARD || isWithin;
     setIsWithinWorkspace(finalStatus);
+
+    // Save only standard user data
     localStorage.setItem("katdict_user", JSON.stringify(sessionData));
     localStorage.setItem("katdict_geo_status", String(finalStatus));
+
     refreshAttendance(sessionData.id);
   };
 
   return {
     user,
-    isAdmin,
     isWithinWorkspace,
     isLoading,
     attendance,

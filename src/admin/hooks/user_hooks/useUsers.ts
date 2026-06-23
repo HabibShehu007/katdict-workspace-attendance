@@ -1,14 +1,14 @@
-// src/hooks/user_hooks/useUsers.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "../admin_hooks/useAuth"; // Import your auth hook
+// Import from your new context
+import { useAdmin } from "../../context/AdminContext";
 
 const API_URL = "/api/admin/users";
 
 export function useUsers() {
-  const { admin } = useAuth();
+  // Use the new Admin hook
+  const { admin } = useAdmin();
 
   return useQuery({
-    // Include the role in the queryKey so data refreshes if the admin changes
     queryKey: ["users", admin?.managed_role],
     queryFn: async () => {
       if (!admin?.managed_role) throw new Error("No admin role found");
@@ -18,17 +18,16 @@ export function useUsers() {
       const data = await res.json();
       return data.users;
     },
-    enabled: !!admin?.managed_role, // Only run fetch when we have the role
+    enabled: !!admin?.managed_role,
   });
 }
 
 export function useDeleteUser() {
-  const { admin } = useAuth();
+  const { admin } = useAdmin(); // Use the new Admin hook
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // Pass role in the body or URL to verify deletion permission
       const res = await fetch(`${API_URL}?adminRole=${admin?.managed_role}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

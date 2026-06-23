@@ -3,6 +3,7 @@ import { db } from "../../src/db/index.js";
 import { users } from "../../src/db/schema.js";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import { UserRole } from "../../src/types/auth.types.js";
 
 const WORKSPACE_LAT = Number(process.env.VITE_KATDICT_LAT || 12.9876);
 const WORKSPACE_LNG = Number(process.env.VITE_KATDICT_LNG || 7.6123);
@@ -34,6 +35,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const { email, password, latitude, longitude } = req.body;
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ error: "Email and password are required." });
+    }
     const cleanEmail = email.toLowerCase().trim();
 
     // 1. Fetch user
@@ -51,6 +57,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(401).json({ error: "Invalid login credentials." });
     }
 
+    // --- HARD SECURITY GUARD ---
+    // Prevent any account with the "admin" role from authenticating here
+    if (user.role === "admin") {
+      return res.status(403).json({
+        error: "Access denied. Admins must use the Admin portal.",
+      });
+    }
+
     // 3. Location Check
     let isWithinWorkspace = false;
     if (latitude !== undefined && longitude !== undefined) {
@@ -61,15 +75,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         WORKSPACE_LNG,
       );
       isWithinWorkspace = distance <= ALLOWED_RADIUS_METERS;
-
-      console.log(`--- User Location Debug ---`);
-      console.log(
-        `Distance: ${distance.toFixed(2)}m (Allowed: ${ALLOWED_RADIUS_METERS}m)`,
-      );
-      console.log(`Result: ${isWithinWorkspace ? "WITHIN" : "REMOTE"}`);
     }
 
-    // 4. Return Success
+    // 4. Return Success with strict shape matching UserProfile
     return res.status(200).json({
       success: true,
       message: isWithinWorkspace
@@ -80,9 +88,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         id: user.id,
         fullName: user.fullName,
         email: user.email,
-        role: user.role,
+        role: user.role as UserRole,
         bio: user.bio,
         createdAt: user.createdAt,
+        currentStreak: user.currentStreak ?? 0,
+        highestStreak: user.highestStreak ?? 0,
+        avatarUrl: user.avatarUrl,
+        isAdmin: false, // EXPLICITLY FORCED FALSE
       },
     });
   } catch (error) {

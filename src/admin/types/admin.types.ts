@@ -56,3 +56,19 @@ export type AdminLogItem =
   | NetworkingAdminLog
   | DataScienceAdminLog;
 
+// New: Admin Session Profile
+export interface AdminProfile {
+  id: number;
+  email: string;
+  role: string;
+  managed_role: string;
+  isAdmin: true;
+}
+
+// New: Admin Context Shape
+export interface AdminContextType {
+  admin: AdminProfile | null;
+  isLoading: boolean;
+  loginAdmin: (adminData: AdminProfile) => void;
+  logoutAdmin: () => void;
+}

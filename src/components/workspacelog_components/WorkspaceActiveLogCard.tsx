@@ -23,11 +23,6 @@ export default function WorkspaceActiveLogCard({
   logData,
   onModifyClick,
 }: WorkspaceActiveLogCardProps) {
-  // --- DEBUGGING LOGS ---
-  console.group("WorkspaceActiveLogCard Debug");
-  console.log("Full logData object:", logData);
-  console.log("workData JSONB contents:", (logData as any).workData);
-  console.groupEnd();
   const {
     title,
     desc,
