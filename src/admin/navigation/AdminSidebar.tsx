@@ -4,6 +4,7 @@ import {
   Users,
   FileClock,
   LogOut,
+  Settings,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -27,6 +28,7 @@ export default function AdminSidebar({
     },
     { name: "User Management", path: "/admin/users", icon: Users },
     { name: "System Logs", path: "/admin/history", icon: FileClock },
+    { name: "Security Settings", path: "/admin/settings", icon: Settings },
   ];
 
   return (

@@ -31,11 +31,16 @@ export const admins = pgTable("admins", {
   id: serial("id").primaryKey(),
   email: varchar("email").notNull().unique(),
   password: text("password").notNull(),
-  managedRole: varchar("managed_role").notNull(), // 'web_development', 'ui_ux_design', or 'networking'
+  managedRole: varchar("managed_role").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
+
+  // New Security Columns for Reset Flow
+  otp: varchar("otp", { length: 6 }),
+  otpExpiresAt: timestamp("otp_expires_at"),
+  tempResetToken: text("temp_reset_token"),
 });
 
-// 2. Attendance/Logs Table (The Core Gateway)
+//  Attendance/Logs Table
 export const attendanceLogs = pgTable(
   "daily_attendance_logs",
   {

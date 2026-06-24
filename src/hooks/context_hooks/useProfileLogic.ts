@@ -8,13 +8,14 @@ export function useProfileLogic(
 ) {
   const [isUpdating, setIsUpdating] = useState(false);
 
+  // 1. Update Profile Fields (Action: update)
   const updateProfile = useCallback(
     async (data: Partial<UserProfile>) => {
       if (!user) return false;
 
       setIsUpdating(true);
       try {
-        const response = await fetch("/api/user/update", {
+        const response = await fetch("/api/profileUpdate?action=update", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId: user.id, ...data }),
@@ -23,7 +24,6 @@ export function useProfileLogic(
         const result = await response.json();
 
         if (result.success) {
-          // Map DB response keys (snake_case) to Frontend state (camelCase)
           const updatedUser: UserProfile = {
             ...user,
             ...result.data,
@@ -52,6 +52,7 @@ export function useProfileLogic(
     [user, setUser],
   );
 
+  // 2. Upload Avatar (Action: upload)
   const uploadAvatar = useCallback(
     async (file: File) => {
       if (!user) return false;
@@ -60,14 +61,17 @@ export function useProfileLogic(
       toast.loading("Uploading avatar...");
 
       try {
-        // Updated endpoint name to match our API file
-        const response = await fetch(`/api/user/avatar?userId=${user.id}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": file.type,
+        // Pointing to the merged API with action=upload
+        const response = await fetch(
+          `/api/profileUpdate?action=upload&userId=${user.id}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": file.type,
+            },
+            body: file,
           },
-          body: file,
-        });
+        );
 
         const result = await response.json();
 

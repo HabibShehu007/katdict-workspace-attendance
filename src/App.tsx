@@ -21,6 +21,7 @@ import AdminLogin from "./admin/pages/AdminLogin";
 import AdminDashboard from "./admin/pages/AdminDashboard";
 import AdminHistory from "./admin/pages/AdminHistory";
 import UserManagement from "./admin/pages/UserManagement";
+import AdminSettings from "./admin/pages/AdminSettings";
 
 // User Guard
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -120,6 +121,14 @@ function App() {
                   element={
                     <AdminProtectedRoute>
                       <UserManagement />
+                    </AdminProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/settings"
+                  element={
+                    <AdminProtectedRoute>
+                      <AdminSettings />
                     </AdminProtectedRoute>
                   }
                 />
