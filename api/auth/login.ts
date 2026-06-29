@@ -3,7 +3,9 @@ import { db } from "../../src/db/index.js";
 import { users } from "../../src/db/schema.js";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import crypto from "crypto"; // Added for token generation
 import { UserRole } from "../../src/types/auth.types.js";
+import { getUserResetOtpEmail } from "../../src/template/userResetTemplate.js"; // Ensure path is correct
 
 const WORKSPACE_LAT = Number(process.env.VITE_KATDICT_LAT || 12.9876);
 const WORKSPACE_LNG = Number(process.env.VITE_KATDICT_LNG || 7.6123);
@@ -33,6 +35,81 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST")
     return res.status(405).json({ error: "Method not allowed." });
 
+  const { action } = req.query;
+
+  // --- PASSWORD RESET ACTIONS ---
+  if (action === "initiate" || action === "verify" || action === "confirm") {
+    const { email, otp, tempResetToken, newPassword } = req.body;
+    const cleanEmail = (email || "").toLowerCase().trim();
+
+    if (action === "initiate") {
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, cleanEmail));
+      if (!user) return res.status(404).json({ error: "User not found." });
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      await db
+        .update(users)
+        .set({ otp, otpExpiresAt: new Date(Date.now() + 5 * 60 * 1000) })
+        .where(eq(users.email, cleanEmail));
+
+      await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+          "api-key": process.env.BREVO_API_KEY!,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          sender: {
+            name: "KATDICT Security",
+            email: process.env.BREVO_SENDER_EMAIL,
+          },
+          to: [{ email: cleanEmail }],
+          subject: "Password Reset Request",
+          htmlContent: getUserResetOtpEmail(otp, "", cleanEmail),
+        }),
+      });
+      return res.status(200).json({ success: true });
+    }
+
+    if (action === "verify") {
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, cleanEmail));
+      if (
+        !user ||
+        user.otp !== otp ||
+        (user.otpExpiresAt && new Date() > new Date(user.otpExpiresAt))
+      ) {
+        return res.status(400).json({ error: "Invalid or expired OTP." });
+      }
+      const token = crypto.randomBytes(32).toString("hex");
+      await db
+        .update(users)
+        .set({ tempResetToken: token, otp: null })
+        .where(eq(users.email, cleanEmail));
+      return res.status(200).json({ success: true, tempResetToken: token });
+    }
+
+    if (action === "confirm") {
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, cleanEmail));
+      if (!user || user.tempResetToken !== tempResetToken)
+        return res.status(400).json({ error: "Unauthorized." });
+      const passwordHash = await bcrypt.hash(newPassword, 12);
+      await db
+        .update(users)
+        .set({ passwordHash, tempResetToken: null })
+        .where(eq(users.email, cleanEmail));
+      return res.status(200).json({ success: true });
+    }
+  }
+
+  // --- ORIGINAL LOGIN LOGIC START ---
   try {
     const { email, password, latitude, longitude } = req.body;
     if (!email || !password) {
@@ -42,13 +119,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     const cleanEmail = email.toLowerCase().trim();
 
-    // 1. Fetch user
     const [user] = await db
       .select()
       .from(users)
       .where(eq(users.email, cleanEmail));
-
-    // 2. Validate Password
     const isPasswordValid = user
       ? await bcrypt.compare(password, user.passwordHash ?? "")
       : false;
@@ -57,15 +131,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(401).json({ error: "Invalid login credentials." });
     }
 
-    // --- HARD SECURITY GUARD ---
-    // Prevent any account with the "admin" role from authenticating here
     if (user.role === "admin") {
-      return res.status(403).json({
-        error: "Access denied. Admins must use the Admin portal.",
-      });
+      return res
+        .status(403)
+        .json({ error: "Access denied. Admins must use the Admin portal." });
     }
 
-    // 3. Location Check
     let isWithinWorkspace = false;
     if (latitude !== undefined && longitude !== undefined) {
       const distance = calculateDistanceInMeters(
@@ -77,7 +148,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       isWithinWorkspace = distance <= ALLOWED_RADIUS_METERS;
     }
 
-    // 4. Return Success with strict shape matching UserProfile
     return res.status(200).json({
       success: true,
       message: isWithinWorkspace
@@ -94,7 +164,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         currentStreak: user.currentStreak ?? 0,
         highestStreak: user.highestStreak ?? 0,
         avatarUrl: user.avatarUrl,
-        isAdmin: false, // EXPLICITLY FORCED FALSE
+        isAdmin: false,
       },
     });
   } catch (error) {

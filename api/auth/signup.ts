@@ -3,7 +3,7 @@ import { db } from "../../src/db/index.js";
 import { users } from "../../src/db/schema.js";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
-import { getWelcomeEmail } from "./welcomeTemplate.js";
+import { getWelcomeEmail } from "../../src/template/welcomeTemplate.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {

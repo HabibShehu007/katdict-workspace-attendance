@@ -9,7 +9,7 @@ import {
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { LogoutModal } from "../../components/modals/LogoutModal";
+import { AdminLogoutModal } from "../components/modals/AdminLogoutModal";
 
 export default function AdminSidebar({
   onCloseMobile,
@@ -104,7 +104,7 @@ export default function AdminSidebar({
         </button>
       </div>
 
-      <LogoutModal
+      <AdminLogoutModal
         isOpen={showLogoutModal}
         onClose={() => setShowLogoutModal(false)}
       />

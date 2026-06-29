@@ -4,13 +4,13 @@ import { admins } from "../../src/db/schema.js";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import { getResetOtpEmail } from "../auth/resetTemplate.js";
+import { getResetOtpEmail } from "../../src/template/resetTemplate.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST")
     return res.status(405).json({ error: "Method not allowed" });
-
   const { action } = req.query;
+
   try {
     switch (action) {
       case "initiate":
@@ -23,27 +23,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: "Invalid action" });
     }
   } catch (error) {
-    console.error("[API] Error:", error);
+    console.error("[API][AdminReset] Error:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 }
 
 async function handleInitiate(req: VercelRequest, res: VercelResponse) {
   const { email } = req.body;
-  console.log(`[Initiate] Sending OTP to: ${email}`);
+  const [admin] = await db.select().from(admins).where(eq(admins.email, email));
+
+  if (!admin) return res.status(404).json({ error: "Admin not found" });
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-  // We store the OTP temporarily in a dummy record or a specific placeholder
-  // if you don't want to tie it to an existing email record yet.
-  // Assuming you want to associate this with an admin record, we select the first one:
-  const [admin] = await db.select().from(admins).limit(1);
-
   await db
     .update(admins)
-    .set({ otp, otpExpiresAt: expiresAt, email: email }) // Update email to input
-    .where(eq(admins.id, admin.id));
+    .set({ otp, otpExpiresAt: expiresAt })
+    .where(eq(admins.email, email));
 
   await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
@@ -56,9 +53,9 @@ async function handleInitiate(req: VercelRequest, res: VercelResponse) {
         name: "KATDICT Admin Security",
         email: process.env.BREVO_SENDER_EMAIL,
       },
-      to: [{ email: email }],
+      to: [{ email: admin.email }],
       subject: "Admin Password Reset",
-      htmlContent: getResetOtpEmail(otp, "Admin", email),
+      htmlContent: getResetOtpEmail(otp, admin.managedRole, admin.email),
     }),
   });
 
@@ -69,8 +66,12 @@ async function handleVerify(req: VercelRequest, res: VercelResponse) {
   const { email, otp } = req.body;
   const [admin] = await db.select().from(admins).where(eq(admins.email, email));
 
-  if (!admin || admin.otp !== otp) {
-    return res.status(400).json({ error: "Invalid OTP" });
+  if (
+    !admin ||
+    admin.otp !== otp ||
+    (admin.otpExpiresAt && new Date() > admin.otpExpiresAt)
+  ) {
+    return res.status(400).json({ error: "Invalid or expired OTP" });
   }
 
   const tempResetToken = crypto.randomBytes(32).toString("hex");

@@ -116,12 +116,23 @@ export default function Login() {
 
             {/* Password Field */}
             <div className="space-y-1.5">
-              <label
-                htmlFor="password"
-                className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 transition-colors"
-              >
-                Password
-              </label>
+              {/* Flex container to keep label on left and link on right */}
+              <div className="flex justify-between items-center">
+                <label
+                  htmlFor="password"
+                  className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 transition-colors"
+                >
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={() => navigate("/forgot-password")}
+                  className="text-xs font-bold text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors cursor-pointer hover:underline"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+
               <div className="relative flex items-center">
                 <Lock className="absolute left-4 w-5 h-5 text-zinc-400 dark:text-zinc-500 transition-colors" />
 

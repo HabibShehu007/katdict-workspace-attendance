@@ -11,6 +11,7 @@ import React from "react";
 import Onboarding from "./pages/Onboarding";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
 import WorkspaceHistory from "./pages/WorkspaceHistory";
 import Performance from "./pages/Performance";
@@ -63,6 +64,7 @@ function App() {
                 <Route path="/" element={<Onboarding />} />
                 <Route path="/signup" element={<SignUp />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/admin/login" element={<AdminLogin />} />
 
                 {/* User Routes */}

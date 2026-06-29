@@ -56,7 +56,7 @@ export type AdminLogItem =
   | NetworkingAdminLog
   | DataScienceAdminLog;
 
-// New: Admin Session Profile
+// New: Admins Session Profile
 export interface AdminProfile {
   id: number;
   email: string;

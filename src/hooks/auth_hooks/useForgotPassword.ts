@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router";
 
-export function useAdminReset() {
+export function useForgotPassword() {
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const initiate = async (email: string) => {
     if (!email || !email.includes("@")) {
@@ -12,17 +14,17 @@ export function useAdminReset() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/reset?action=initiate", {
+      const res = await fetch("/api/auth/login?action=initiate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
       if (res.ok) {
-        toast.success("Verification code sent to your email.");
+        toast.success("A verification code has been sent to your email.");
         return true;
       }
       const data = await res.json().catch(() => ({}));
-      toast.error(data.error || "Failed to initiate reset.");
+      toast.error(data.error || "Could not start the reset process.");
     } catch {
       toast.error("Network error. Please try again.");
     } finally {
@@ -33,20 +35,20 @@ export function useAdminReset() {
 
   const verify = async (email: string, otp: string) => {
     if (!otp || otp.length !== 6) {
-      toast.error("Please enter the 6-digit verification code.");
+      toast.error("Please enter the 6-digit code.");
       return null;
     }
 
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/reset?action=verify", {
+      const res = await fetch("/api/auth/login?action=verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp }),
       });
       const data = await res.json();
       if (res.ok) {
-        toast.success("Verification successful.");
+        toast.success("Code verified successfully.");
         return data.tempResetToken;
       }
       toast.error(data.error || "Invalid or expired code.");
@@ -58,32 +60,32 @@ export function useAdminReset() {
     return null;
   };
 
-  const confirm = async (details: any) => {
-    const { newEmail, newPassword, confirmPassword } = details;
-
-    if (!newEmail || !newPassword || !confirmPassword) {
-      toast.error("All fields are required.");
-      return false;
-    }
+  const confirm = async (
+    email: string,
+    tempResetToken: string,
+    newPassword: string,
+    confirmPassword: string,
+  ) => {
     if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match.");
+      toast.error("Your passwords do not match.");
       return false;
     }
 
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/reset?action=confirm", {
+      const res = await fetch("/api/auth/login?action=confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(details),
+        body: JSON.stringify({ email, tempResetToken, newPassword }),
       });
       if (res.ok) {
-        toast.success("Credentials updated successfully!");
+        toast.success("Password updated! Please log in.");
+        navigate("/login");
         return true;
       }
-      toast.error("Failed to update security details.");
+      toast.error("Failed to update password.");
     } catch {
-      toast.error("System error during update.");
+      toast.error("System error.");
     } finally {
       setLoading(false);
     }

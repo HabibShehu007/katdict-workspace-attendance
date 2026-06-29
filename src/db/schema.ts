@@ -24,6 +24,9 @@ export const users = pgTable("users", {
   avatarUrl: text("avatar_url"),
   bio: text("bio"),
   createdAt: timestamp("created_at"),
+  otp: varchar("otp", { length: 6 }),
+  otpExpiresAt: timestamp("otp_expires_at"),
+  tempResetToken: text("temp_reset_token"),
 });
 
 // 3. Admins Table (Isolated Admin Identity)
